@@ -12,3 +12,5 @@
 - Sahith Dambekodi
 - Monica Gupta
 
+#### Build Instructions:
+Install rubygems, jekyll and do `jekyll serve` in the root directory to launch the website locally.
