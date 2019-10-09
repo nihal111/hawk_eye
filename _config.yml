@@ -1,6 +1,6 @@
 # Dependencies
 markdown:         redcarpet
-highlighter:      rouge
+highlighter:      pygments
 
 # Permalinks
 permalink:        pretty
@@ -10,8 +10,8 @@ permalink:        pretty
 title:            Hawk Eye
 tagline:          'Automatic Birds Eye View Registration of Sports Videos'
 description:      'Automatic Birds Eye View Registration of Sports Videos'
-url:              "https://nihal111.github.io/hawk_eye"
-baseurl:          ""
+url:              "https://nihal111.github.io"
+baseurl:          /
 
 author:
   name:           'Mark Otto'
