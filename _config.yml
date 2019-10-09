@@ -10,8 +10,8 @@ permalink:        pretty
 title:            Hawk Eye
 tagline:          'Automatic Birds Eye View Registration of Sports Videos'
 description:      'Automatic Birds Eye View Registration of Sports Videos'
-url:              "http://nihal111.github.io"
-baseurl:          "/hawk_eye"
+url:              "https://nihal111.github.io/hawk_eye"
+baseurl:          ""
 
 author:
   name:           'Mark Otto'
