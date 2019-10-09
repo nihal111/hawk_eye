@@ -34,13 +34,6 @@ Use the obtained cluster centers to obtain bounding boxes for each player.
 The coordinates of these bounding boxes can be projected to the top view space by using the previously calculated homography matrices for each image. This will give us the location of each player in the top-view.
 
 
-![placeholder]({{site.baseurl}}public/camera_view.jpg "Camera View")
-<center>a) Camera View from broadcast</center>  
-<br/>
-
-![placeholder]({{site.baseurl}}public/top_view.png "Top View")
-<center>b) Top View with camera region highlighted</center>
-
 ## Scope and Expected Results:
 
 ### 100% :
