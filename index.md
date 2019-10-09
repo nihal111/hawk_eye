@@ -26,13 +26,20 @@ The input to the network will be the actual camera view images and the output wi
 3. Obtaining top view projecting during testing:
 The unseen actual camera view image will be first sent to the pix2pix network which generates the edge map for the image.
 The edge map will be sent as a query to the database which will give us back to the most similar edge map using nearest neighbour approaches.
-This retrieved edge map will give us the corresponding top view for the actual camera image.
+This retrieved edge map will give the corresponding homography matrix which can be used to obtain the top view for the actual camera image.
 
 4. Player Detection:
 Use DBScan to obtain the approximate location of a player. The clustering will be based on the colour and the size of the cluster will be tuned to ensure that 2 players do not get put in the same cluster.
 Use the obtained cluster centers to obtain bounding boxes for each player.
 The coordinates of these bounding boxes can be projected to the top view space by using the previously calculated homography matrices for each image. This will give us the location of each player in the top-view.
 
+
+![placeholder]({{site.baseurl}}public/camera_view.jpg "Camera View")
+<center>a) Camera View from broadcast</center>  
+<br/>
+
+![placeholder]({{site.baseurl}}public/top_view.png "Top View")
+<center>b) Top View with camera region highlighted</center>
 
 ## Scope and Expected Results:
 
