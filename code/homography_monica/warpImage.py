@@ -1,4 +1,6 @@
 import numpy as np
+import cv2
+import matplotlib.pyplot as plt
 
 def warpImage(inputIm, H):
 	width=inputIm.shape[1]
@@ -20,3 +22,23 @@ def warpImage(inputIm, H):
 			if(in0>=0 and in0<width and in1<height and in1>=0):
 				warpIm[j][i]=inputIm[in1][in0]
 	return warpIm
+
+if __name__ == '__main__':
+
+    file_name = 'soccer_data/train_val/30'
+
+    with open('{}.homographyMatrix'.format(file_name)) as f:
+        content = f.readlines()
+    H = np.zeros((3, 3))
+    for i in range(len(content)):
+        H[i] = np.array([float(x) for x in content[i].strip().split()])
+    bgr = cv2.imread('{}.jpg'.format(file_name)).astype(np.uint8)
+    inputIm = bgr[..., ::-1]
+    # result = warpImage(bgr, H)
+    w = 150
+    h = 150
+    warpIm = np.zeros((h, w, 3), "uint8")
+    result = cv2.warpPerspective(
+        src=inputIm, dst=warpIm, M=H, dsize=(h, w))
+    plt.imshow()
+    plt.show()
