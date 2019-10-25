@@ -40,5 +40,5 @@ validation-report.json
 # Folders to ignore
 node_modules
 
-code/__pycache__
+__pycache__
 code/soccer_data
