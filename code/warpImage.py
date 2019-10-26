@@ -2,7 +2,8 @@ import numpy as np
 import cv2
 from matplotlib import path
 import matplotlib.pyplot as plt
-from pan import pan
+from perturb_functions.pan import pan
+from perturb_functions.zoom import zoom
 
 
 def getMask(points, x_width, y_width):
@@ -31,10 +32,12 @@ def get_bounds(transformed_corners, footballIm, padding):
     return x_min, x_max, y_min, y_max
 
 
-def apply_perturbation(shifted_corners, pan_angle = 0.2, perturbation='PAN'):
+def apply_perturbation(shifted_corners, pan_angle = 0.2, scale_x = 0.5, scale_y = 0.5, perturbation='ZOOM'):
     if perturbation == 'PAN':
-        pan_points = np.array(pan(shifted_corners, pan_angle))
-        return pan_points
+        pert_points = np.array(pan(shifted_corners, pan_angle))
+    elif perturbation == "ZOOM":
+        pert_points = np.array(zoom(shifted_corners, sx=0.8, sy=0.8))
+    return pert_points
 
 
 def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max):
@@ -56,6 +59,8 @@ def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max):
         return x >= 0 and x < inputIm.shape[1] and \
             y >= 0 and y < inputIm.shape[0]
 
+    ### Uncomment if you want to plot the warped image on the canvas
+
     # for k in range(0, canvas_coords.shape[1]):
     #     x_canvas = int(canvas_coords[0, k] - x_min)
     #     y_canvas = int(canvas_coords[1, k] - y_min)
@@ -63,6 +68,7 @@ def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max):
     #     if inside_input(x_input, y_input):
     #         # Copy input image to refIm
     #         canvasIm[y_canvas, x_canvas] = inputIm[y_input, x_input]
+
     footballIm_h, footballIm_w, _ = footballIm.shape
     for i in range(footballIm_w):
         for j in range(footballIm_h):
