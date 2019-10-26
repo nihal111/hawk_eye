@@ -4,7 +4,7 @@ from matplotlib import path
 import matplotlib.pyplot as plt
 from perturb_functions.pan import pan
 from perturb_functions.zoom import zoom
-
+from perturb_functions.tilt import tilt
 
 def getMask(points, x_min, x_max, y_min, y_max):
     x_width = int(x_max - x_min + 1)
@@ -51,6 +51,13 @@ def apply_zoom(shifted_corners, non_homo_corners, inputIm_shape, canvasIm):
     edge_map_perturb = get_edge_map(inputIm_shape, canvasIm, H_perturb)
     return edge_map_perturb, H_perturb
 
+def apply_tilt(shifted_corners, non_homo_corners, inputIm_shape, canvasIm):
+    pert_points = np.array(tilt(shifted_corners,t=0.1))
+    # Create mask for perturbed trapezium
+    # mask = getMask(pert_points, x_min, x_max, y_min, y_max)
+    H_perturb = cv2.findHomography(non_homo_corners, pert_points)[0]
+    edge_map_perturb = get_edge_map(inputIm_shape, canvasIm, H_perturb)
+    return edge_map_perturb, H_perturb
 
 def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
                        x_min, x_max, y_min, y_max):
@@ -79,11 +86,19 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
     edge_map_zoom, H_zoom = apply_zoom(
         shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
     plt.imshow(edge_map_zoom.astype('uint8'))
+    plt.title("Zoom")
     plt.show()
 
     edge_map_pan, H_pan = apply_pan(
         shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
     plt.imshow(edge_map_pan.astype('uint8'))
+    plt.title("Pan")
+    plt.show()
+
+    edge_map_tilt, H_tilt = apply_tilt(
+        shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
+    plt.imshow(edge_map_tilt.astype('uint8'))
+    plt.title("Tilt")
     plt.show()
 
 
