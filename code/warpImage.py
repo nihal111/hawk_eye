@@ -79,22 +79,25 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
     H_base = cv2.findHomography(non_homo_corners, shifted_corners)[0]
     edge_map = get_edge_map(inputIm.shape, canvasIm, H_base)
     plt.imshow(edge_map.astype('uint8'))
+    plt.title("Original")
     plt.show()
 
     # Generate more pairs for different perturbations
-    # Get trapezium after applying pan perturbation
+    # Get trapezium after applying zoom perturbation
     edge_map_zoom, H_zoom = apply_zoom(
         shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
     plt.imshow(edge_map_zoom.astype('uint8'))
     plt.title("Zoom")
     plt.show()
 
+    # Get trapezium after applying pan perturbation
     edge_map_pan, H_pan = apply_pan(
         shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
     plt.imshow(edge_map_pan.astype('uint8'))
     plt.title("Pan")
     plt.show()
 
+    # Get trapezium after applying tilt perturbation
     edge_map_tilt, H_tilt = apply_tilt(
         shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
     plt.imshow(edge_map_tilt.astype('uint8'))
