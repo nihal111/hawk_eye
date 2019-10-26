@@ -3,7 +3,6 @@ import cv2
 from matplotlib import path
 import matplotlib.pyplot as plt
 from pan import pan
-from computeH import computeH
 
 
 def getMask(points, x_width, y_width):
@@ -32,9 +31,9 @@ def get_bounds(transformed_corners, footballIm, padding):
     return x_min, x_max, y_min, y_max
 
 
-def apply_perturbation(shifted_corners, perturbation='PAN'):
+def apply_perturbation(shifted_corners, pan_angle = 0.2, perturbation='PAN'):
     if perturbation == 'PAN':
-        pan_points = np.array(pan(shifted_corners, 0.2))
+        pan_points = np.array(pan(shifted_corners, pan_angle))
         return pan_points
 
 
@@ -57,13 +56,13 @@ def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max):
         return x >= 0 and x < inputIm.shape[1] and \
             y >= 0 and y < inputIm.shape[0]
 
-    for k in range(0, canvas_coords.shape[1]):
-        x_canvas = int(canvas_coords[0, k] - x_min)
-        y_canvas = int(canvas_coords[1, k] - y_min)
-        x_input, y_input = int(inputIm_coords[0, k]), int(inputIm_coords[1, k])
-        if inside_input(x_input, y_input):
-            # Copy input image to refIm
-            canvasIm[y_canvas, x_canvas] = inputIm[y_input, x_input]
+    # for k in range(0, canvas_coords.shape[1]):
+    #     x_canvas = int(canvas_coords[0, k] - x_min)
+    #     y_canvas = int(canvas_coords[1, k] - y_min)
+    #     x_input, y_input = int(inputIm_coords[0, k]), int(inputIm_coords[1, k])
+    #     if inside_input(x_input, y_input):
+    #         # Copy input image to refIm
+    #         canvasIm[y_canvas, x_canvas] = inputIm[y_input, x_input]
     footballIm_h, footballIm_w, _ = footballIm.shape
     for i in range(footballIm_w):
         for j in range(footballIm_h):
@@ -111,7 +110,6 @@ def warpImage(inputIm, footballIm, H, padding):
     non_homo_corners = np.array([[corner[0], corner[1]]
                                  for corner in corners.T])
     H_perturb = cv2.findHomography(non_homo_corners, pan_points)[0]
-    H_perturb = computeH(non_homo_corners.T, pan_points.T)
 
     x_width = int(x_max - x_min + 1)
     y_width = int(y_max - y_min + 1)
@@ -135,7 +133,7 @@ def cv2warp(inputIm, H):
 
 
 if __name__ == '__main__':
-    file_name = 'soccer_data/train_val/26'
+    file_name = 'soccer_data/raw/train_val/26'
     football_field = 'football_field.jpg'
 
     with open('{}.homographyMatrix'.format(file_name)) as f:
