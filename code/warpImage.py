@@ -32,12 +32,33 @@ def get_bounds(transformed_corners, footballIm, padding):
     return x_min, x_max, y_min, y_max
 
 
-def apply_perturbation(shifted_corners, pan_angle = 0.2, scale_x = 0.5, scale_y = 0.5, perturbation='ZOOM'):
+def apply_perturbation(corners, transformed_corners, canvasIm,
+                       x_min, x_max, y_min, y_max):
+    # Need to shift corners to map them to the canvas with H
+    shifted_corners = np.array([[corner[0] - x_min, corner[1] - y_min]
+                                for corner in transformed_corners.T])
+
+    # Get trapezium after applying pan perturbation
+    perturbation = 'ZOOM'
     if perturbation == 'PAN':
-        pert_points = np.array(pan(shifted_corners, pan_angle))
+        pert_points = np.array(pan(shifted_corners, delta_theta=0.2))
     elif perturbation == "ZOOM":
         pert_points = np.array(zoom(shifted_corners, sx=0.8, sy=0.8))
-    return pert_points
+
+    # Find the H for rect to perturbed trapezium
+    non_homo_corners = np.array([[corner[0], corner[1]]
+                                 for corner in corners.T])
+    H_perturb = cv2.findHomography(non_homo_corners, pert_points)[0]
+
+    # Create mask for perturbed trapezium
+    x_width = int(x_max - x_min + 1)
+    y_width = int(y_max - y_min + 1)
+    mask = getMask(pert_points, x_width, y_width)
+
+    # Get edge map in input space for perturbed trapezium
+    edge_map_perturb = perturbedToRect(inputIm, canvasIm, H_perturb)
+
+    return pert_points, mask, edge_map_perturb
 
 
 def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max):
@@ -59,7 +80,7 @@ def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max):
         return x >= 0 and x < inputIm.shape[1] and \
             y >= 0 and y < inputIm.shape[0]
 
-    ### Uncomment if you want to plot the warped image on the canvas
+    # Uncomment if you want to plot the warped image on the canvas
 
     # for k in range(0, canvas_coords.shape[1]):
     #     x_canvas = int(canvas_coords[0, k] - x_min)
@@ -98,35 +119,28 @@ def perturbedToRect(inputIm, canvasIm, H):
 
 
 def warpImage(inputIm, footballIm, H, padding):
-    global fig
     h, w, _ = inputIm.shape
+    # Find input image corners
     corners = np.array([[0, 0, 1], [w - 1, 0, 1],
                         [w - 1, h - 1, 1], [0, h - 1, 1]]).transpose()
+    # Find trapezium corners in the warped space (top-view)
     transformed_corners = np.matmul(H, corners)
     transformed_corners = np.divide(
         transformed_corners, transformed_corners[2, :])
 
+    # Get bounds with football field added and padding
     x_min, x_max, y_min, y_max = get_bounds(
         transformed_corners, footballIm, padding)
 
-    shifted_corners = np.array([[corner[0] - x_min, corner[1] - y_min]
-                                for corner in transformed_corners.T])
-    pan_points = apply_perturbation(shifted_corners)
-
-    non_homo_corners = np.array([[corner[0], corner[1]]
-                                 for corner in corners.T])
-    H_perturb = cv2.findHomography(non_homo_corners, pan_points)[0]
-
-    x_width = int(x_max - x_min + 1)
-    y_width = int(y_max - y_min + 1)
-
+    # Get canvas with warped input and football field
     canvasIm = warpImageOntoCanvas(
         inputIm, footballIm, H, x_min, x_max, y_min, y_max)
-    mask = getMask(pan_points, x_width, y_width)
 
-    edge_map_perturb = perturbedToRect(inputIm, canvasIm, H_perturb)
+    # Get the perturbation, mask and perturbed edge map in input space
+    pert_points, mask, edge_map_perturb = apply_perturbation(
+        corners, transformed_corners, canvasIm, x_min, x_max, y_min, y_max)
 
-    return canvasIm.astype('uint8'), pan_points, mask, \
+    return canvasIm.astype('uint8'), pert_points, mask, \
         edge_map_perturb.astype('uint8')
 
 
@@ -139,7 +153,7 @@ def cv2warp(inputIm, H):
 
 
 if __name__ == '__main__':
-    file_name = 'soccer_data/raw/train_val/26'
+    file_name = 'soccer_data/train_val/26'
     football_field = 'football_field.jpg'
 
     with open('{}.homographyMatrix'.format(file_name)) as f:
@@ -159,6 +173,8 @@ if __name__ == '__main__':
         bgr, footballIm, H, padding=200)
 
     fig = plt.figure()
+    plt.imshow(inputIm)
+    plt.show()
     plt.imshow(warpIm)
     for (x, y) in pan_points:
         circle = plt.Circle((x, y), 2, color=(1, 0, 0), fill=True)
