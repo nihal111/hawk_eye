@@ -16,7 +16,7 @@ def find_intersection(m1, c1, m2, c2):
 def find_polar(point, origin):
     diff = point - origin
     r = np.sqrt(np.sum(np.square(diff)))
-    theta = np.arctan(diff[1] / diff[0])
+    theta = np.arctan2(diff[1], diff[0])
     return r, theta
 
 
@@ -29,7 +29,7 @@ def transform(r, theta, delta_theta):
     return r, theta + delta_theta
 
 
-def pan(points, delta_theta):
+def pan(points, delta_theta=0.087):
     # Take Note: points are not homogenous, np.array([x, y]) form
     x0, y0 = points[0]  # p0 - TL
     x1, y1 = points[1]  # p1 - TR
