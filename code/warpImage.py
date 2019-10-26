@@ -139,7 +139,7 @@ def cv2warp(inputIm, H):
 
 
 if __name__ == '__main__':
-    file_name = 'soccer_data/raw/train_val/26'
+    file_name = 'soccer_data/train_val/26'
     football_field = 'football_field.jpg'
 
     with open('{}.homographyMatrix'.format(file_name)) as f:
