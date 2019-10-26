@@ -34,7 +34,7 @@ def get_bounds(transformed_corners, footballIm, padding):
 
 def apply_perturbation(shifted_corners, perturbation='PAN'):
     if perturbation == 'PAN':
-        pan_points = np.array(pan(shifted_corners))
+        pan_points = np.array(pan(shifted_corners, 0.2))
         return pan_points
 
 
@@ -73,16 +73,14 @@ def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max):
 
 
 def perturbedToRect(inputIm, canvasIm, H):
-    xs, ys, a = [], [], np.zeros((inputIm.shape[0], inputIm.shape[1]))
+    xs, ys, a = [], [], np.zeros((inputIm.shape[1], inputIm.shape[0]))
     for index, _ in np.ndenumerate(a):
         xs.append(index[0]), ys.append(index[1])
     input_coords = np.vstack(
         (np.array(xs), np.array(ys), np.ones(len(xs))))
     transformed = np.matmul(H, input_coords)
-
-    def inside_canvas(x, y):
-        return x >= 0 and x < canvasIm.shape[1] and \
-            y >= 0 and y < canvasIm.shape[0]
+    transformed[0, :] = np.divide(transformed[0, :], transformed[2, :])
+    transformed[1, :] = np.divide(transformed[1, :], transformed[2, :])
 
     edge_map_perturb = np.zeros(inputIm.shape)
     for k in range(0, input_coords.shape[1]):
@@ -90,8 +88,7 @@ def perturbedToRect(inputIm, canvasIm, H):
         y_input = int(input_coords[1, k])
         x_canvas = int(transformed[0, k])
         y_canvas = int(transformed[1, k])
-        if inside_canvas(x_canvas, y_canvas):
-            edge_map_perturb[y_input, x_input] = canvasIm[y_canvas, x_canvas]
+        edge_map_perturb[y_input, x_input] = canvasIm[y_canvas, x_canvas]
     return edge_map_perturb
 
 
@@ -114,11 +111,7 @@ def warpImage(inputIm, footballIm, H, padding):
     non_homo_corners = np.array([[corner[0], corner[1]]
                                  for corner in corners.T])
     H_perturb = cv2.findHomography(non_homo_corners, pan_points)[0]
-    print(H_perturb)
     H_perturb = computeH(non_homo_corners.T, pan_points.T)
-    print(H_perturb)
-    print(pan_points)
-    print(non_homo_corners)
 
     x_width = int(x_max - x_min + 1)
     y_width = int(y_max - y_min + 1)
@@ -129,7 +122,8 @@ def warpImage(inputIm, footballIm, H, padding):
 
     edge_map_perturb = perturbedToRect(inputIm, canvasIm, H_perturb)
 
-    return canvasIm.astype('uint8'), pan_points, mask, edge_map_perturb.astype('uint8')
+    return canvasIm.astype('uint8'), pan_points, mask, \
+        edge_map_perturb.astype('uint8')
 
 
 def cv2warp(inputIm, H):
