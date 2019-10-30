@@ -60,7 +60,7 @@ def apply_tilt(shifted_corners, non_homo_corners, inputIm_shape, canvasIm):
     return edge_map_perturb, H_perturb
 
 def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
-                       x_min, x_max, y_min, y_max):
+                       x_min, x_max, y_min, y_max, idx):
     '''
     This is the wrapper function that creates all sorts of perturbations
     to the warped input image and finds the homographies that map it back
@@ -78,31 +78,44 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
     # First pair is directly the edge map for inputIm and the homography
     H_base = cv2.findHomography(non_homo_corners, shifted_corners)[0]
     edge_map = get_edge_map(inputIm.shape, canvasIm, H_base)
-    plt.imshow(edge_map.astype('uint8'))
-    plt.title("Original")
-    plt.show()
+    
+    edge_map = edge_map.astype(np.uint8)
+    
+    print(edge_map.shape)
+    
+    # plt.imshow(edge_map)
+    # plt.title("Original")
+    # plt.show()
+    # print(edge_map)
+    
+    cv2.imwrite('trainB/' + str(idx)  + '.jpg', edge_map)
 
-    # Generate more pairs for different perturbations
-    # Get trapezium after applying zoom perturbation
-    edge_map_zoom, H_zoom = apply_zoom(
-        shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
-    plt.imshow(edge_map_zoom.astype('uint8'))
-    plt.title("Zoom")
-    plt.show()
+    gen_pix2pix = 1
 
-    # Get trapezium after applying pan perturbation
-    edge_map_pan, H_pan = apply_pan(
-        shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
-    plt.imshow(edge_map_pan.astype('uint8'))
-    plt.title("Pan")
-    plt.show()
+    if gen_pix2pix == 0:
+        # Generate more pairs for different perturbations
+        # Get trapezium after applying zoom perturbation
+        edge_map_zoom, H_zoom = apply_zoom(
+            shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
+        plt.imshow(edge_map_zoom.astype('uint8'))
+        plt.title("Zoom")
+        plt.show()
 
-    # Get trapezium after applying tilt perturbation
-    edge_map_tilt, H_tilt = apply_tilt(
-        shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
-    plt.imshow(edge_map_tilt.astype('uint8'))
-    plt.title("Tilt")
-    plt.show()
+        # Get trapezium after applying pan perturbation
+        edge_map_pan, H_pan = apply_pan(
+            shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
+        plt.imshow(edge_map_pan.astype('uint8'))
+        plt.title("Pan")
+        plt.show()
+
+        # Get trapezium after applying tilt perturbation
+        edge_map_tilt, H_tilt = apply_tilt(
+            shifted_corners, non_homo_corners, inputIm.shape, canvasIm)
+        plt.imshow(edge_map_tilt.astype('uint8'))
+        plt.title("Tilt")
+        plt.show()
+    else:
+        pass
 
 
 def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max):
@@ -158,16 +171,32 @@ def get_edge_map(inputIm_shape, canvasIm, H):
     transformed[1, :] = np.divide(transformed[1, :], transformed[2, :])
 
     edge_map_perturb = np.zeros(inputIm_shape)
+    
+    h, w, c = inputIm_shape
+    hc, wc, cc = canvasIm.shape
+    badcount = 0
+    
     for k in range(0, input_coords.shape[1]):
-        x_input = int(input_coords[0, k])
-        y_input = int(input_coords[1, k])
-        x_canvas = int(transformed[0, k])
-        y_canvas = int(transformed[1, k])
+        # x_input = int(input_coords[0, k])
+        # y_input = int(input_coords[1, k])
+        # x_canvas = int(transformed[0, k])
+        # y_canvas = int(transformed[1, k])
+        
+        if int(transformed[0, k]) < 0 or int(transformed[0, k]) > wc - 1 or int(transformed[1, k]) < 0 or int(transformed[1, k]) > hc - 1:
+            badcount += 1
+        
+        x_input = max(min(int(input_coords[0, k]), w - 1), 0)
+        y_input = max(min(int(input_coords[1, k]), h - 1), 0)
+        x_canvas = max(min(int(transformed[0, k]), wc - 1), 0)
+        y_canvas = max(min(int(transformed[1, k]), hc - 1), 0)
+        
         edge_map_perturb[y_input, x_input] = canvasIm[y_canvas, x_canvas]
+        
+    print("Badcount: ", badcount)
     return edge_map_perturb
 
 
-def warpImage(inputIm, footballIm, H, padding):
+def warpImage(inputIm, footballIm, H, padding, idx):
     h, w, _ = inputIm.shape
     # Find input image corners
     corners = np.array([[0, 0, 1], [w - 1, 0, 1],
@@ -187,7 +216,7 @@ def warpImage(inputIm, footballIm, H, padding):
 
     # Get the perturbation, mask and perturbed edge map in input space
     apply_perturbation(corners, transformed_corners, canvasIm,
-                       inputIm, x_min, x_max, y_min, y_max)
+                       inputIm, x_min, x_max, y_min, y_max, idx)
 
     return canvasIm.astype('uint8')
 
@@ -201,34 +230,29 @@ def cv2warp(inputIm, H):
 
 
 if __name__ == '__main__':
-    file_name = 'soccer_data/train_val/2'
-    football_field = 'football_field.jpg'
+    
+    for k in range(1, 210):
+    
+        file_name = 'soccer_data/raw/train_val/' + str(k)
+        football_field = 'football_field.jpg'
 
-    with open('{}.homographyMatrix'.format(file_name)) as f:
-        content = f.readlines()
-    H = np.zeros((3, 3))
-    for i in range(len(content)):
-        H[i] = np.array([float(x) for x in content[i].strip().split()])
-    bgr = cv2.imread('{}.jpg'.format(file_name)).astype(np.uint8)
-    inputIm = bgr[..., ::-1]
+        print(file_name)
 
-    football = cv2.imread(football_field).astype(np.uint8)
-    footballIm = football[..., ::-1]
+        with open('{}.homographyMatrix'.format(file_name)) as f:
+            content = f.readlines()
+        H = np.zeros((3, 3))
+        for i in range(len(content)):
+            H[i] = np.array([float(x) for x in content[i].strip().split()])
+        bgr = cv2.imread('{}.jpg'.format(file_name)).astype(np.uint8)
+        inputIm = bgr[..., ::-1]
+        
+        cv2.imwrite('trainA/' + str(k)  + '.jpg', inputIm)
 
-    plt.imshow(footballIm)
-    plt.show()
-    warpIm = warpImage(
-        bgr, footballIm, H, padding=200)
+        football = cv2.imread(football_field).astype(np.uint8)
+        footballIm = football[..., ::-1]
 
-    # fig = plt.figure()
-    # plt.imshow(inputIm)
-    # plt.show()
-    # plt.imshow(warpIm)
-    # for (x, y) in pan_points:
-    #     circle = plt.Circle((x, y), 2, color=(1, 0, 0), fill=True)
-    #     fig.add_subplot().add_artist(circle)
-    # plt.show()
-    # plt.imshow(mask)
-    # plt.show()
-    # plt.imshow(edge_map_perturb)
-    # plt.show()
+        # plt.imshow(footballIm)
+        # plt.show()
+        warpIm = warpImage(
+            bgr, footballIm, H, padding=200, idx = k)
+
