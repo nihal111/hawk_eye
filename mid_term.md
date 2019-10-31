@@ -61,6 +61,6 @@ During test time, the query image is passed through the generator to obtain the 
 + **Obtaining top view projecting during testing**: Use a KNN approach to find the closest match in the dictionary to the edgemap from the input image. The best match would be obtained based on which samples give minimum distance in terms of chamfer distance, HOG features, SIFT features, etc.
 
 
-+ **Player Detection**: Use DBScan to obtain the approximate location of a player and map it to top-view.
++ **Player Detection**: Use an unsupervised clustering approach like DBScan or superpixel based segmentation to obtain the approximate location of a player and map it to top-view.
 
 + **Measuring Accuracy**: Since there is no absolute metric and we don't have ground truth for test images (of player positions in top-view), we plan to qualitatively assess the correctness of the top-view images generated. We just plan to use something like a MOS score to evaluate the accuracy of our final model on test images. Also, we do have the homographies for transforming the camera-view images to top-view (for the test segment of our dataset) and we plan to use a measure like RMSE to quantify the error in finding the closest match for homography from the dictionary we construct.
