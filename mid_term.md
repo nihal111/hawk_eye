@@ -7,7 +7,12 @@ title: Mid Term Project Update
   Hey there! This page is included as an example. Feel free to customize it for your own use upon downloading. Carry on!
 </p> -->
 
-### Progress so far:
+### Abstract:
+nihal111 [4:21 PM]
+Tactics and strategies for sports are largely depicted on the top-view of game field. For a lot of sport analytics to happen, we need to convert the camera view broadcast stream to a top view that helps understand player movements in-game. This is typically achieved with an expensive multi-camera set up around the field. In this work, we aim to solve this problem with computer vision techniques. We implement a method to do this in a semi supervised way. We generate homographies between images from particular camera views to the corresponding location in the top view field (which is an edge map). To get corresponding edge maps of the view from that camera, we can do an inverse warp. We can create a large database of such edge maps along with homography matrices using camera perturbations. During test time, we can use a pix2pix deep network trained on our database obtained in this way to obtain corresponding edge map. This is queried through the database to get a homography matrix which obtains a top view of that test image. In this way, we can obtain relevant statistics from just the broadcast video stream of the match via an efficient solution that does not require any expensive camera setup.
+
+
+### Approach and Experiments:
 
 + **Obtaining a top view projection of the training image**: We use the FIFA 2014 World Cup Dataset for football images and create the homographies to map image from camera view to top view.  
 
@@ -58,3 +63,7 @@ During test time, the query image is passed through the generator to obtain the 
 
 
 + **Player Detection**: Use DBScan to obtain the approximate location of a player and map it to top-view.
+
++ **Measuring Accuracy**: Since there is no absolute metric and we don't have ground truth for test images (of player positions in top-view), we plan to qualitatively assess the correctness of the top-view images generated. We just plan to use something like a MOS score to evaluate the accuracy of our final model on test images.
+
+Also, we do have the homographies for transforming the camera-view images to top-view (for the test segment of our dataset) and we plan to use a measure like RMSE to quantify the error in finding the closest match for homography from the dictionary we construct.
