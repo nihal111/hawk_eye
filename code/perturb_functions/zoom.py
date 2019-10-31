@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def zoom(points,sx = 0.5, sy = 0.5):
-
+    # points in order TL TR BR BL
     ones = np.ones(points.shape[0])
     homo_points = np.column_stack((points, ones.T))
     cx = np.mean(points[:, 0])

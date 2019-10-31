@@ -54,6 +54,6 @@ def pan(points, delta_theta=0.087):
     return new_points
 
 
-if __name__ == '__main__':
-    print(pan([np.array([5, 8.66]), np.array([8.66, 5]),
-               np.array([4.33, 2.5]), np.array([2.5, 4.33])], 0.087))
+# if __name__ == '__main__':
+#     print(pan([np.array([5, 8.66]), np.array([8.66, 5]),
+#                np.array([4.33, 2.5]), np.array([2.5, 4.33])], 0.087))
