@@ -57,6 +57,11 @@ During test time, the query image is passed through the generator to obtain the 
 	e) Adversarial training pipeline for edge map generation using Pix2Pix 
 </p>
 
+<p align="center">
+	<img src="{{site.baseurl}}/public/pix2pixloss.png" />
+	f) Pix2Pix Training Loss Curves
+</p>
+
 ### Up next:
 + **Obtaining top view projecting during testing**: Use a KNN approach to find the closest match in the dictionary to the edgemap from the input image. The best match would be obtained based on which samples give minimum distance in terms of chamfer distance, HOG features, SIFT features, etc.
 

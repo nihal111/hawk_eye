@@ -42,3 +42,4 @@ node_modules
 
 __pycache__
 code/soccer_data
+.jekyll-cache/
