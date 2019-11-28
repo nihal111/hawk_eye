@@ -41,16 +41,17 @@ for descriptor in descriptors:
         query_bw = cv2.threshold(im_gray, thresh, 255, cv2.THRESH_BINARY)[1]
         
         if descriptor == 'distance_transform':
-            query_feat = query_bw
-            sample_feat = ndimage.distance_transform_edt(sample_bw)
+            query_feat = ndimage.distance_transform_edt(query_bw)
+            sample_feat = sample_bw
             
-            #do cosine
+            dist = 1/((np.sum(sample_feat * query_feat)) / (np.linalg.norm(sample_feat, ord=1)))
             
         elif descriptor == 'hog':
             query_feat = hog.compute(query_bw)
             sample_feat = hog.compute(sample_bw)
         
-        dist = np.sum(np.abs(query_feat - sample_feat))
+            dist = np.sum(np.abs(query_feat - sample_feat))
+            
         print(dist)
         
         plt.subplot(3, 7, i + 2)
