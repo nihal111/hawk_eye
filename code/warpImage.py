@@ -44,7 +44,7 @@ def apply_pan(shifted_corners, non_homo_corners, inputIm_shape, canvasIm):
 
 
 def apply_zoom(shifted_corners, non_homo_corners, inputIm_shape, canvasIm):
-    pert_points = np.array(zoom(shifted_corners, sx=0.8, sy=0.8))
+    pert_points = np.array(zoom(shifted_corners, sx=0.4, sy=0.4))
     # Create mask for perturbed trapezium
     # mask = getMask(pert_points, x_min, x_max, y_min, y_max)
     H_perturb = cv2.findHomography(non_homo_corners, pert_points)[0]
@@ -52,7 +52,7 @@ def apply_zoom(shifted_corners, non_homo_corners, inputIm_shape, canvasIm):
     return edge_map_perturb, H_perturb
 
 def apply_tilt(shifted_corners, non_homo_corners, inputIm_shape, canvasIm):
-    pert_points = np.array(tilt(shifted_corners,t=0.1))
+    pert_points = np.array(tilt(shifted_corners,t=-0.1))
     # Create mask for perturbed trapezium
     # mask = getMask(pert_points, x_min, x_max, y_min, y_max)
     H_perturb = cv2.findHomography(non_homo_corners, pert_points)[0]
