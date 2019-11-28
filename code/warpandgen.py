@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from perturb_functions.pan import pan
 from perturb_functions.zoom import zoom
 from perturb_functions.tilt import tilt
+bdc = 0
 
 def getMask(points, x_min, x_max, y_min, y_max):
     x_width = int(x_max - x_min + 1)
@@ -81,8 +82,6 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
     
     edge_map = edge_map.astype(np.uint8)
     
-    print(edge_map.shape)
-    
     # plt.imshow(edge_map)
     # plt.title("Original")
     # plt.show()
@@ -96,9 +95,9 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
         # Generate more pairs for different perturbations
         
         ## Modify based on size of dictionary
-        zoom_val = [0.75,0.8,0.85]
-        pan_val = [0.1,0.2,0.3]
-        tilt_val = [0.05,0.07,0.1]
+        zoom_val = [0.95,1.1,1.2,1.15,0.9,0.85]
+        pan_val = [-0.1,0.1,0.15,-0.15,-0.18,0.18]
+        tilt_val = [-0.05,0.05,0.02,-0.02,-0.035,0.035]
 
         # Get trapezium after applying zoom perturbation
         for s in (zoom_val):
@@ -208,8 +207,11 @@ def get_edge_map(inputIm_shape, canvasIm, H):
         y_canvas = max(min(int(transformed[1, k]), hc - 1), 0)
         
         edge_map_perturb[y_input, x_input] = canvasIm[y_canvas, x_canvas]
-        
-    print("Badcount: ", badcount)
+    
+    if(badcount!=0):
+        global bdc
+        bdc = bdc + 1
+
     return edge_map_perturb
 
 
@@ -253,8 +255,6 @@ if __name__ == '__main__':
         file_name = 'soccer_data/train_val/' + str(k)
         football_field = 'football_field.jpg'
 
-        print(file_name)
-
         with open('{}.homographyMatrix'.format(file_name)) as f:
             content = f.readlines()
         H = np.zeros((3, 3))
@@ -271,8 +271,9 @@ if __name__ == '__main__':
 
         # plt.imshow(footballIm)
         # plt.show()
-        warpIm = warpImage(
-            bgr, footballIm, H, padding=200, idx = k)
+        warpIm = warpImage( bgr, footballIm, H, padding=200, idx = k)
+
+    print(bdc)
         
         
 
