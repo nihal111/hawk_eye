@@ -11,7 +11,7 @@ title:            Hawk Eye
 tagline:          'Automatic Birds Eye View Registration of Sports Videos'
 description:      'Automatic Birds Eye View Registration of Sports Videos'
 url:              "https://nihal111.github.io"
-baseurl:          /
+baseurl:          / # Comment away, i.e. set to blank to run on local
 
 author:
   name:           'Mark Otto'
@@ -23,6 +23,6 @@ paginate:         5
 version:          2.1.0
 
 github:
-  repo:           https://github.com/poole/hyde
+  repo:           https://github.com/nihal111/hawk_eye
 
 plugins: [jekyll-gist, jekyll-paginate]
