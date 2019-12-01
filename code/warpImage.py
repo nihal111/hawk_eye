@@ -74,6 +74,9 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
     # Find the H for rect to perturbed trapezium
     non_homo_corners = np.array([[corner[0], corner[1]]
                                  for corner in corners.T])
+    plt.imshow(inputIm.astype('uint8'))
+    plt.title("InputIm")
+    plt.show()
 
     # First pair is directly the edge map for inputIm and the homography
     H_base = cv2.findHomography(non_homo_corners, shifted_corners)[0]

@@ -239,7 +239,6 @@ def warpImage(inputIm, footballIm, H, padding, idx):
 
     return canvasIm.astype('uint8')
 
-
 def cv2warp(inputIm, H):
     w = 75
     h = 75
