@@ -40,8 +40,8 @@ def apply_pan(shifted_corners, non_homo_corners, inputIm_shape, canvasIm, delta_
     # Create mask for perturbed trapezium
     # mask = getMask(pert_points, x_min, x_max, y_min, y_max)
     H_perturb = cv2.findHomography(non_homo_corners, pert_points)[0]
-    edge_map_perturb = get_edge_map(inputIm_shape, canvasIm, H_perturb)
-    return edge_map_perturb, H_perturb
+    edge_map_perturb, bad_image = get_edge_map(inputIm_shape, canvasIm, H_perturb)
+    return edge_map_perturb, H_perturb, bad_image
 
 
 def apply_zoom(shifted_corners, non_homo_corners, inputIm_shape, canvasIm, sx, sy):
@@ -49,16 +49,16 @@ def apply_zoom(shifted_corners, non_homo_corners, inputIm_shape, canvasIm, sx, s
     # Create mask for perturbed trapezium
     # mask = getMask(pert_points, x_min, x_max, y_min, y_max)
     H_perturb = cv2.findHomography(non_homo_corners, pert_points)[0]
-    edge_map_perturb = get_edge_map(inputIm_shape, canvasIm, H_perturb)
-    return edge_map_perturb, H_perturb
+    edge_map_perturb, bad_image = get_edge_map(inputIm_shape, canvasIm, H_perturb)
+    return edge_map_perturb, H_perturb, bad_image
 
 def apply_tilt(shifted_corners, non_homo_corners, inputIm_shape, canvasIm, t):
     pert_points = np.array(tilt(shifted_corners,t=t))
     # Create mask for perturbed trapezium
     # mask = getMask(pert_points, x_min, x_max, y_min, y_max)
     H_perturb = cv2.findHomography(non_homo_corners, pert_points)[0]
-    edge_map_perturb = get_edge_map(inputIm_shape, canvasIm, H_perturb)
-    return edge_map_perturb, H_perturb
+    edge_map_perturb, bad_image = get_edge_map(inputIm_shape, canvasIm, H_perturb)
+    return edge_map_perturb, H_perturb, bad_image
 
 def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
                        x_min, x_max, y_min, y_max, idx):
@@ -78,7 +78,7 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
 
     # First pair is directly the edge map for inputIm and the homography
     H_base = cv2.findHomography(non_homo_corners, shifted_corners)[0]
-    edge_map = get_edge_map(inputIm.shape, canvasIm, H_base)
+    edge_map, bad_image = get_edge_map(inputIm.shape, canvasIm, H_base)
     
     edge_map = edge_map.astype(np.uint8)
     
@@ -101,35 +101,38 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
 
         # Get trapezium after applying zoom perturbation
         for s in (zoom_val):
-            edge_map_zoom, H_zoom = apply_zoom(
+            edge_map_zoom, H_zoom, bad_image = apply_zoom(
                 shifted_corners, non_homo_corners, inputIm.shape, canvasIm, sx=s, sy=s)
             # plt.imshow(edge_map_zoom.astype('uint8'))
             # plt.title("Zoom")
             # plt.show()
-            cv2.imwrite('soccer_data/train_zoom/' + str(idx) +'_'+str(int(s*100))+'.jpg', edge_map_zoom)
-            np.save('soccer_data/train_zoom/H' + str(idx)+'_'+str(int(s*100)), H_zoom)
+            if(bad_image == 0):
+                cv2.imwrite('soccer_data/train_zoom/' + str(idx) +'_'+str(int(s*100))+'.jpg', edge_map_zoom)
+                np.save('soccer_data/train_zoom/H' + str(idx)+'_'+str(int(s*100)), H_zoom)
 
         
         # Get trapezium after applying pan perturbation
         for delta_theta in pan_val:
-            edge_map_pan, H_pan = apply_pan(
+            edge_map_pan, H_pan, bad_image = apply_pan(
                 shifted_corners, non_homo_corners, inputIm.shape, canvasIm, delta_theta = delta_theta)
             # plt.imshow(edge_map_pan.astype('uint8'))
             # plt.title("Pan")
             # plt.show()
-            cv2.imwrite('soccer_data/train_pan/' + str(idx) +'_'+str(int(delta_theta*100))+'.jpg', edge_map_pan)
-            np.save('soccer_data/train_pan/H' + str(idx)+'_'+str(int(delta_theta*100)), H_pan)
+            if(bad_image == 0):
+                cv2.imwrite('soccer_data/train_pan/' + str(idx) +'_'+str(int(delta_theta*100))+'.jpg', edge_map_pan)
+                np.save('soccer_data/train_pan/H' + str(idx)+'_'+str(int(delta_theta*100)), H_pan)
 
 
         # Get trapezium after applying tilt perturbation
         for t in tilt_val:
-            edge_map_tilt, H_tilt = apply_tilt(
+            edge_map_tilt, H_tilt, bad_image = apply_tilt(
                 shifted_corners, non_homo_corners, inputIm.shape, canvasIm, t = t)
             # plt.imshow(edge_map_tilt.astype('uint8'))
             # plt.title("Tilt")
             # plt.show()
-            cv2.imwrite('soccer_data/train_tilt/' + str(idx) +'_'+str(int(t*100))+'.jpg', edge_map_tilt)
-            np.save('soccer_data/train_tilt/H' + str(idx)+'_'+str(int(t*100)), H_tilt)
+            if(bad_image == 0):
+                cv2.imwrite('soccer_data/train_tilt/' + str(idx) +'_'+str(int(t*100))+'.jpg', edge_map_tilt)
+                np.save('soccer_data/train_tilt/H' + str(idx)+'_'+str(int(t*100)), H_tilt)
     else:
         pass
 
@@ -178,6 +181,7 @@ def get_edge_map(inputIm_shape, canvasIm, H):
     H- the calculated homography (camera view -> top view)
     '''
     xs, ys, a = [], [], np.zeros((inputIm_shape[1], inputIm_shape[0]))
+    bad_image = 0
     for index, _ in np.ndenumerate(a):
         xs.append(index[0]), ys.append(index[1])
     input_coords = np.vstack(
@@ -209,10 +213,9 @@ def get_edge_map(inputIm_shape, canvasIm, H):
         edge_map_perturb[y_input, x_input] = canvasIm[y_canvas, x_canvas]
     
     if(badcount!=0):
-        global bdc
-        bdc = bdc + 1
+        bad_image = 1
 
-    return edge_map_perturb
+    return edge_map_perturb, bad_image
 
 
 def warpImage(inputIm, footballIm, H, padding, idx):
@@ -250,7 +253,7 @@ def cv2warp(inputIm, H):
 
 if __name__ == '__main__':
     
-    for k in range(2, 210):
+    for k in range(60, 210):
     
         file_name = 'soccer_data/train_val/' + str(k)
         football_field = 'football_field.jpg'
@@ -272,6 +275,7 @@ if __name__ == '__main__':
         # plt.imshow(footballIm)
         # plt.show()
         warpIm = warpImage( bgr, footballIm, H, padding=200, idx = k)
+        break
 
     print(bdc)
         
