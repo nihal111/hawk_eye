@@ -1,2 +1,4 @@
 pix2pix_code/checkpoints/
 pix2pix_code/datasets/
+results*/
+*.npy/
