@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from perturb_functions.pan import pan
 from perturb_functions.zoom import zoom
 from perturb_functions.tilt import tilt
-bdc = 0
 
 def getMask(points, x_min, x_max, y_min, y_max):
     x_width = int(x_max - x_min + 1)
@@ -214,7 +213,7 @@ def get_edge_map(inputIm_shape, canvasIm, H):
     
     if(badcount!=0):
         bad_image = 1
-
+    
     return edge_map_perturb, bad_image
 
 
@@ -275,9 +274,8 @@ if __name__ == '__main__':
         # plt.imshow(footballIm)
         # plt.show()
         warpIm = warpImage( bgr, footballIm, H, padding=200, idx = k)
-        break
+        
 
-    print(bdc)
         
         
 
