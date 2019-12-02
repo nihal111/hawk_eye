@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from perturb_functions.pan import pan
 from perturb_functions.zoom import zoom
 from perturb_functions.tilt import tilt
-bdc = 0
 
 def getMask(points, x_min, x_max, y_min, y_max):
     x_width = int(x_max - x_min + 1)
@@ -108,7 +107,7 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
             # plt.show()
             if(bad_image == 0):
                 cv2.imwrite('soccer_data/train_zoom/' + str(idx) +'_'+str(int(s*100))+'.jpg', edge_map_zoom)
-                np.save('soccer_data/train_zoom/H' + str(idx)+'_'+str(int(s*100)), H_zoom)
+                np.save('soccer_data/train_zoom/H/' + str(idx)+'_'+str(int(s*100)), H_zoom)
 
         
         # Get trapezium after applying pan perturbation
@@ -120,7 +119,7 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
             # plt.show()
             if(bad_image == 0):
                 cv2.imwrite('soccer_data/train_pan/' + str(idx) +'_'+str(int(delta_theta*100))+'.jpg', edge_map_pan)
-                np.save('soccer_data/train_pan/H' + str(idx)+'_'+str(int(delta_theta*100)), H_pan)
+                np.save('soccer_data/train_pan/H/' + str(idx)+'_'+str(int(delta_theta*100)), H_pan)
 
 
         # Get trapezium after applying tilt perturbation
@@ -132,7 +131,7 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
             # plt.show()
             if(bad_image == 0):
                 cv2.imwrite('soccer_data/train_tilt/' + str(idx) +'_'+str(int(t*100))+'.jpg', edge_map_tilt)
-                np.save('soccer_data/train_tilt/H' + str(idx)+'_'+str(int(t*100)), H_tilt)
+                np.save('soccer_data/train_tilt/H/' + str(idx)+'_'+str(int(t*100)), H_tilt)
     else:
         pass
 
@@ -202,8 +201,8 @@ def get_edge_map(inputIm_shape, canvasIm, H):
         # x_canvas = int(transformed[0, k])
         # y_canvas = int(transformed[1, k])
         
-        if int(transformed[0, k]) < 0 or int(transformed[0, k]) > wc - 1 or int(transformed[1, k]) < 0 or int(transformed[1, k]) > hc - 1:
-            badcount += 1
+        # if int(transformed[0, k]) < 0 or int(transformed[0, k]) > wc - 1 or int(transformed[1, k]) < 0 or int(transformed[1, k]) > hc - 1:
+        #     badcount += 1
         
         x_input = max(min(int(input_coords[0, k]), w - 1), 0)
         y_input = max(min(int(input_coords[1, k]), h - 1), 0)
@@ -211,8 +210,8 @@ def get_edge_map(inputIm_shape, canvasIm, H):
         y_canvas = max(min(int(transformed[1, k]), hc - 1), 0)
         
         edge_map_perturb[y_input, x_input] = canvasIm[y_canvas, x_canvas]
-    
-    if(badcount!=0):
+
+    if(np.mean(edge_map_perturb) == 0):
         bad_image = 1
 
     return edge_map_perturb, bad_image
@@ -252,7 +251,7 @@ def cv2warp(inputIm, H):
 
 if __name__ == '__main__':
     
-    for k in range(60, 210):
+    for k in range(2, 210):
     
         file_name = 'soccer_data/train_val/' + str(k)
         football_field = 'football_field.jpg'
@@ -274,9 +273,3 @@ if __name__ == '__main__':
         # plt.imshow(footballIm)
         # plt.show()
         warpIm = warpImage( bgr, footballIm, H, padding=200, idx = k)
-        break
-
-    print(bdc)
-        
-        
-
