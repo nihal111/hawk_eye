@@ -97,7 +97,7 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
         # Generate more pairs for different perturbations
         
         ## Modify based on size of dictionary
-        zoom_val = []#[0.95,1.1,1.2,1.15,0.9,0.85]
+        zoom_val = [0.95,1.1,1.2,1.15,0.9,0.85]
         pan_val = [-0.1,0.1,0.15,-0.15,-0.18,0.18]
         tilt_val = [-0.05,0.05,0.02,-0.02,-0.035,0.035]
 
