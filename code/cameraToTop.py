@@ -22,7 +22,6 @@ def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max, top_
     x_width = int(x_max - x_min + 1)
     y_width = int(y_max - y_min + 1)
     canvasIm = np.zeros((y_width, x_width, 3))
-    print(canvasIm.shape)
     
     xs, ys, a = [], [], np.zeros((x_width, y_width))
     for index, _ in np.ndenumerate(a):
@@ -39,7 +38,6 @@ def warpImageOntoCanvas(inputIm, footballIm, H, x_min, x_max, y_min, y_max, top_
             y >= 0 and y < inputIm.shape[0]
 
     footballIm_h, footballIm_w, _ = footballIm.shape
-    print(top_left)
     for i in range(footballIm_w):
         for j in range(footballIm_h):
             canvasIm[j][i] = footballIm[j][i]
@@ -64,9 +62,6 @@ def transformAndShow(file_name, H, padding, top_left):
     # Change directory to appropriate perturbation
     # cv2.imwrite('trainA_pan/' + str(k)  + '.jpg', inputIm)
 
-    plt.imshow(inputIm)
-    plt.show()
-
     football_field = 'football_field.jpg'
     football = cv2.imread(football_field).astype(np.uint8)
     footballIm = football[..., ::-1]
@@ -82,27 +77,21 @@ def transformAndShow(file_name, H, padding, top_left):
     transformed_corners = np.matmul(H, corners)
     transformed_corners = np.divide(
         transformed_corners, transformed_corners[2, :])
-
-    print("transformed_corners\n", transformed_corners)
     
     if top_left is None:
         x1, _, y1, _ = get_bounds(transformed_corners, footballIm, padding)
         top_left=(-x1, -y1)
-        print("New top left", top_left)
 
     f_y, f_x, f_z = footballIm.shape
     new_footballIm = np.zeros((int(top_left[1]) + f_y, int(top_left[0]) + f_x, f_z))
     new_footballIm[int(top_left[1]):, int(top_left[0]):, :] = footballIm
     
-    plt.imshow(new_footballIm)
-    plt.show()
+    # plt.imshow(new_footballIm)
+    # plt.show()
     
     # Get bounds with football field added and padding
     x_min, x_max, y_min, y_max = get_bounds(
         transformed_corners, new_footballIm, padding)
-
-    print("Inside transformAndShow")
-    print(x_min, x_max, y_min, y_max)
 
     # Get canvas with warped input and football field
     canvasIm=warpImageOntoCanvas(
@@ -113,23 +102,36 @@ def transformAndShow(file_name, H, padding, top_left):
 
 
 if __name__ == '__main__':
-    # Below code is wrong
-    # file_name='soccer_data/train_zoom/2_110' + '.jpg'
-    file_name = '/home/rohit/Documents/soccer_data/raw/train_val/' + str(57) + '.jpg'
-    padding=0
 
-    # homography_file='soccer_data/train_zoom/H2_110.npy'
-    # H=np.load(homography_file)
+    # For dictionary images, the homographies we have saved, transforms the
+    # camera image into the top view space where football field's top left
+    # corner is at `top_left` (xmin, ymin)
 
-    with open('/home/rohit/Documents/soccer_data/raw/train_val/' + str(57) + '.homographyMatrix') as f:
+    # For test images from the dataset, the homography transforms the camera
+    # image into the top view space with the top left corner of the football
+    # field is at (0, 0)
+
+    # Displaying an example of each:
+
+    # ----- Image from dictionary -----
+    file_name = 'soccer_data/train_zoom/60_85.jpg'
+    homography_file = 'soccer_data/train_zoom/H60_85.npy'
+    H = np.load(homography_file)
+    with open('soccer_data/top_left/60.txt') as f:
+        content = [float(line.strip()) for line in f.readlines()]
+    top_left = (content[0], content[1])
+    print(file_name, H, 0, top_left)
+    transformAndShow(file_name, H, padding=0, top_left=top_left)
+
+    # ------ Image from Dataset ------
+
+    file_name = 'soccer_data/train_val/91.jpg'
+    homography_file = 'soccer_data/train_val/91.homographyMatrix'
+    with open(homography_file) as f:
         content = f.readlines()
     H = np.zeros((3, 3))
     for i in range(len(content)):
         H[i] = np.array([float(x) for x in content[i].strip().split()])
-
-    corners = np.array([[0, 0, 1]]).transpose()
-    transformed_corners = np.matmul(H, corners)
-    transformed_corners = np.divide(
-        transformed_corners, transformed_corners[2, :])
-    
-    transformAndShow(file_name, H, padding, top_left=None)
+    top_left = None
+    print(file_name, H, 0, top_left)
+    transformAndShow(file_name, H, padding=0, top_left=top_left)

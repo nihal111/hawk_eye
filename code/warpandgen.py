@@ -84,10 +84,9 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
     
     edge_map = edge_map.astype(np.uint8)
     
-    plt.imshow(edge_map)
-    plt.title("Original")
-    plt.show()
-    # print(edge_map)
+    # plt.imshow(edge_map)
+    # plt.title("Original")
+    # plt.show()
     
     # cv2.imwrite('trainB/' + str(idx)  + '.jpg', edge_map)
 
@@ -258,7 +257,7 @@ def cv2warp(inputIm, H):
 
 if __name__ == '__main__':
     
-    for k in range(60, 210):
+    for k in range(2, 210):
     
         file_name = 'soccer_data/train_val/' + str(k)
         football_field = 'football_field.jpg'
@@ -279,8 +278,8 @@ if __name__ == '__main__':
 
         # plt.imshow(footballIm)
         # plt.show()
-        warpIm = warpImage( bgr, footballIm, H, padding=200, idx = k)
-        break
+        warpIm = warpImage(bgr, footballIm, H, padding=200, idx = k)
+        # break
 
     print(bdc)
         
