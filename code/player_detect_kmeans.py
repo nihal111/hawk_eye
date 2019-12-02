@@ -3,10 +3,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-cluster_centers = np.load('blue_or_red.npy')
+player_temps = []
 
 def frame_detect(image):
-
 
     hsv = cv2.cvtColor(image,cv2.COLOR_BGR2HSV)
     #green range
@@ -36,10 +35,10 @@ def frame_detect(image):
     kernel = np.ones((13,13),np.uint8)
     thresh = cv2.threshold(res_gray,127,255,cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-    plt.imshow(image)
-    plt.show()
-    plt.imshow(res_gray)
-    plt.show()
+    # plt.imshow(image)
+    # plt.show()
+    # plt.imshow(res_gray)
+    # plt.show()
 
     im2,contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
@@ -67,19 +66,16 @@ def frame_detect(image):
 
                 # if(nzCount >= 20):
                 #     #Mark blue jersy players as france
-                
-                # print("hello")
-                # player_crop = image[y:y+h, x:x+w]
-                # plt.imshow(player_crop)
-                # plt.show()
-                # player_crop = cv2.resize(player_crop, (30, 30))
-                # player_crop = player_crop.reshape(-1)
-                
-                # dists = np.sum(np.abs(player_crop - cluster_centers), 1)
-                # print(dists)
-                # print(np.argmin(dists))
-                
                 cv2.rectangle(image,(x,y),(x+w,y+h),(255,0,0),thickness = 3)
+                
+                if h > 0 and w > 0:
+                    player_crop = image[y:y+h, x:x+w]
+                    player_crop = cv2.resize(player_crop, (30, 30))
+                    # plt.imshow(player_crop)
+                    # plt.show()
+                    # print(player_crop.shape)
+                    player_crop = player_crop.reshape(-1)
+                    player_temps.append(player_crop)
                 # else:
             #     pass
             # if(nzCountred>=20):
@@ -89,14 +85,16 @@ def frame_detect(image):
                     # pass
 
 
-    plt.imshow(image)
-    plt.show()
+    # plt.imshow(image)
+    # plt.show()
 
 
 
 if __name__ == '__main__':
     
-    for k in range(10, 13):
+    from sklearn.cluster import KMeans 
+    
+    for k in range(10, 11):
     
         file_name = '/home/rohit/Documents/soccer_data/raw/train_val/' + str(k)
 
@@ -104,6 +102,15 @@ if __name__ == '__main__':
         inputIm = bgr[..., ::-1]
 
         frame_detect(inputIm)
+        print(k, len(player_temps))
+        
+    player_temps_arr = np.array(player_temps)
+    print(player_temps_arr.shape)
+    kmeans = KMeans(n_clusters=2, random_state=0).fit(player_temps)
+    
+    centers = kmeans.cluster_centers_
+    
+    np.save('blue_or_red.npy', centers)
 
            
 
