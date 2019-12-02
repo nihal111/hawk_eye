@@ -100,6 +100,8 @@ def transformAndShow(file_name, H, padding, top_left):
     plt.imshow(canvasIm)
     plt.show()
 
+    return transformed_corners
+
 
 if __name__ == '__main__':
 
@@ -114,24 +116,30 @@ if __name__ == '__main__':
     # Displaying an example of each:
 
     # ----- Image from dictionary -----
-    file_name = 'soccer_data/train_zoom/60_85.jpg'
-    homography_file = 'soccer_data/train_zoom/H60_85.npy'
+    file_name = 'soccer_data/train_zoom/97_85.jpg'
+    homography_file = 'soccer_data/train_zoom/H97_85.npy'
     H = np.load(homography_file)
-    with open('soccer_data/top_left/60.txt') as f:
+    with open('soccer_data/top_left/97.txt') as f:
         content = [float(line.strip()) for line in f.readlines()]
     top_left = (content[0], content[1])
-    print(file_name, H, 0, top_left)
-    transformAndShow(file_name, H, padding=0, top_left=top_left)
+    # print(file_name, H, 0, top_left)
+    transformed_corners = transformAndShow(file_name, H, padding=0, top_left=top_left)
+    transformed_corners = [[corner[0] - top_left[0], corner[1] - top_left[1]] 
+                            for corner in transformed_corners.T]
+    print("Trapezium corners from dictionary image-\n", transformed_corners)
 
     # ------ Image from Dataset ------
 
-    file_name = 'soccer_data/train_val/91.jpg'
-    homography_file = 'soccer_data/train_val/91.homographyMatrix'
+    file_name = 'soccer_data/train_val/97.jpg'
+    homography_file = 'soccer_data/train_val/97.homographyMatrix'
     with open(homography_file) as f:
         content = f.readlines()
     H = np.zeros((3, 3))
     for i in range(len(content)):
         H[i] = np.array([float(x) for x in content[i].strip().split()])
     top_left = None
-    print(file_name, H, 0, top_left)
-    transformAndShow(file_name, H, padding=0, top_left=top_left)
+    # print(file_name, H, 0, top_left)
+    transformed_corners = transformAndShow(file_name, H, padding=0, top_left=top_left)
+    transformed_corners = [[corner[0], corner[1]] 
+                            for corner in transformed_corners.T]
+    print("\nTrapezium corners from dataset image-\n", transformed_corners)
