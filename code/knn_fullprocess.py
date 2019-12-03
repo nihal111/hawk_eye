@@ -18,8 +18,8 @@ query_files = os.listdir(query_path)
 query_files = [op.join(query_path, file) for file in query_files if file[-8:] == 'fake.png']
 # query_files = [query_files]
 
-database_path = '/home/rohit/Documents/Sem1_Gatech/cv/cv_project/Archive'
-database_folders = ['pan', 'tilt', 'zoom', 'normal']
+database_path = './soccer_data/'
+database_folders = ['pan', 'tilt', 'zoom']
 
 database_files = []
 for folder in database_folders:
@@ -62,9 +62,19 @@ for descriptor in descriptors:
                 
                 error = 1 / ((np.sum(query_feat * train_feat)) / (np.linalg.norm(query_feat, ord=1)))
                 
+                # plt.imshow(train_bw)
+                # plt.show()
+                # plt.imshow(train_feat)
+                # plt.show()
+                # exit()
+                
             elif descriptor == 'hog':
                 train_feat = hog.compute(train_bw)
                 query_feat = hog.compute(query_bw)
+                
+                # plt.imshow(train_feat)
+                # plt.show()
+                # exit()
             
                 error = np.sum(np.abs(train_feat - query_feat))
                 
@@ -87,11 +97,12 @@ for descriptor in descriptors:
         for z in range(5):
             imname = best_files[idx[z]]
             im_gray = cv2.imread(imname, cv2.IMREAD_GRAYSCALE)
+            im_gray = cv2.threshold(im_gray, thresh, 255, cv2.THRESH_BINARY)[1]
             im_gray = cv2.resize(im_gray, (256, 256))
             plt.subplot(3, 2, z + 1 + 1).set_title('Rank' + str(z + 1) + ": " + str(errors[idx[z]]))
             plt.imshow(im_gray, cmap='gray')      
             
-        plt.savefig('results_images_clean/best_5_' + query_file.split('/')[-1] + '_' + imname.split('/')[-1])
+        plt.savefig('results_images_slides/best_5_' + query_file.split('/')[-1] + '_' + imname.split('/')[-1])
         # plt.show()
         
         query_name = query_file
@@ -101,7 +112,7 @@ for descriptor in descriptors:
         matches[query_name] = best_match_name
         
         if ct % 10 == 0:
-            with open('matches.json', 'w') as f:
+            with open('matches_slides.json', 'w') as f:
                 json.dump(matches, f)
             
         ct += 1 
