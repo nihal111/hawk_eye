@@ -3,6 +3,8 @@ import cv2
 from matplotlib import path
 import matplotlib.pyplot as plt
 
+#flip this if you want to visualize
+visualize = False
 
 def get_bounds(transformed_corners, footballIm, padding):
     x_min = min(0, min(transformed_corners[0, :]))
@@ -98,7 +100,8 @@ def transformAndShow(file_name, H, padding, top_left):
         inputIm, new_footballIm, H, x_min, x_max, y_min, y_max, top_left)
 
     plt.imshow(canvasIm)
-    plt.show()
+    if visualize:
+        plt.show()
 
     return transformed_corners
 
@@ -114,32 +117,53 @@ if __name__ == '__main__':
     # field is at (0, 0)
 
     # Displaying an example of each:
+    # Flip visualize to True near imports if you want to show the outputs
 
     # ----- Image from dictionary -----
+    
     file_name = 'soccer_data/train_zoom/97_85.jpg'
     homography_file = 'soccer_data/train_zoom/H97_85.npy'
     H = np.load(homography_file)
+    
     with open('soccer_data/top_left/97.txt') as f:
         content = [float(line.strip()) for line in f.readlines()]
     top_left = (content[0], content[1])
+    
     # print(file_name, H, 0, top_left)
+    
     transformed_corners = transformAndShow(file_name, H, padding=0, top_left=top_left)
-    transformed_corners = [[corner[0] - top_left[0], corner[1] - top_left[1]] 
+    transformed_corners_dict = [[corner[0] - top_left[0], corner[1] - top_left[1]] 
                             for corner in transformed_corners.T]
-    print("Trapezium corners from dictionary image-\n", transformed_corners)
+    print("Trapezium corners from dictionary image-\n", transformed_corners_dict)
 
     # ------ Image from Dataset ------
 
     file_name = 'soccer_data/train_val/97.jpg'
     homography_file = 'soccer_data/train_val/97.homographyMatrix'
+    
     with open(homography_file) as f:
         content = f.readlines()
+        
     H = np.zeros((3, 3))
     for i in range(len(content)):
         H[i] = np.array([float(x) for x in content[i].strip().split()])
     top_left = None
+    
     # print(file_name, H, 0, top_left)
+    
     transformed_corners = transformAndShow(file_name, H, padding=0, top_left=top_left)
-    transformed_corners = [[corner[0], corner[1]] 
+    transformed_corners_database = [[corner[0], corner[1]] 
                             for corner in transformed_corners.T]
-    print("\nTrapezium corners from dataset image-\n", transformed_corners)
+    
+    print("\nTrapezium corners from dataset image-\n", transformed_corners_database)
+    
+    
+    from shapely.geometry import Polygon
+
+    a = Polygon([(transformed_corners_dict[0][0], transformed_corners_dict[0][1]), (transformed_corners_dict[1][0], transformed_corners_dict[1][1]), (transformed_corners_dict[2][0], transformed_corners_dict[2][1]), (transformed_corners_dict[2][0], transformed_corners_dict[2][1])])
+    
+    b = Polygon([(transformed_corners_database[0][0], transformed_corners_database[0][1]), (transformed_corners_database[1][0], transformed_corners_database[1][1]), (transformed_corners_database[2][0], transformed_corners_database[2][1]), (transformed_corners_database[2][0], transformed_corners_database[2][1])])
+    
+    IoU = a.intersection(b).area / a.union(b).area
+    
+    print("IoU: ", IoU)
