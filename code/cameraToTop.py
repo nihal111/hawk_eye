@@ -98,6 +98,30 @@ def transformAndShow(file_name, H, padding, top_left):
         inputIm, new_footballIm, H, x_min, x_max, y_min, y_max, top_left)
 
     plt.imshow(canvasIm)
+    fig = plt.gcf()
+    ax = fig.gca()
+
+    points = [(corner[0] - x_min, corner[1] - y_min) for corner in transformed_corners.T]
+    print(points)
+    circle1 = plt.Circle(points[0], 4, color='r')
+    circle2 = plt.Circle(points[1], 4, color='g')
+    circle3 = plt.Circle(points[2], 4, color='b')
+    circle4 = plt.Circle(points[3], 4, color='pink')
+    ax.add_artist(circle1)
+    ax.add_artist(circle2)
+    ax.add_artist(circle3)
+    ax.add_artist(circle4)
+    
+    points = [(0,0), (115, 0), (115, 75), (0, 75)]
+    points = [(corner[0] + top_left[0], corner[1] + top_left[1]) for corner in points]
+    circle1 = plt.Circle(points[0], 4, color='cyan')
+    circle2 = plt.Circle(points[1], 4, color='cyan')
+    circle3 = plt.Circle(points[2], 4, color='cyan')
+    circle4 = plt.Circle(points[3], 4, color='cyan')
+    ax.add_artist(circle1)
+    ax.add_artist(circle2)
+    ax.add_artist(circle3)
+    ax.add_artist(circle4)
     plt.show()
 
     return transformed_corners
@@ -127,6 +151,9 @@ if __name__ == '__main__':
     transformed_corners = [[corner[0] - top_left[0], corner[1] - top_left[1]] 
                             for corner in transformed_corners.T]
     print("Trapezium corners from dictionary image-\n", transformed_corners)
+
+    # Football field coordinates are- (0, 0), (115, 0), (115, 75), (0, 75)
+
 
     # ------ Image from Dataset ------
 
