@@ -47,27 +47,48 @@ if __name__ == '__main__':
         # print("\nTrapezium corners from dataset image-\n", transformed_corners_database)
         
          # ----- Image from dictionary -----
-        
-        database_file_name = 'soccer_data/' + database_file_name_idx
-        
-        h_database_paths = database_file_name_idx.split('/')
-        h_final_path = h_database_paths[0] + '/H' + h_database_paths[1]
-        h_final_path = h_final_path[:-3] + 'npy'
-        
-        database_homography_file = 'soccer_data/' + h_final_path
-        
-        top_left_path = h_database_paths[1].split('_')[0] + '.txt'
-        
-        # print(database_homography_file, top_left_path)
-        H = np.load(database_homography_file)
-        
-        with open('soccer_data/top_left/' + top_left_path) as f:
-            content = [float(line.strip()) for line in f.readlines()]
-        top_left = (content[0], content[1])
-        
-        transformed_corners = transformAndShow(database_file_name, H, padding=0, top_left=top_left)
-        transformed_corners_dict = [[corner[0] - top_left[0], corner[1] - top_left[1]] 
-                                for corner in transformed_corners.T]
+         
+        if database_file_name_idx.split('/')[0] != 'train_normal':
+            database_file_name = 'soccer_data/' + database_file_name_idx
+            
+            h_database_paths = database_file_name_idx.split('/')
+            h_final_path = h_database_paths[0] + '/H' + h_database_paths[1]
+            h_final_path = h_final_path[:-3] + 'npy'
+            
+            database_homography_file = 'soccer_data/' + h_final_path
+            
+            top_left_path = h_database_paths[1].split('_')[0] + '.txt'
+            
+            # print(database_homography_file, top_left_path)
+            H = np.load(database_homography_file)
+            
+            with open('soccer_data/top_left/' + top_left_path) as f:
+                content = [float(line.strip()) for line in f.readlines()]
+            top_left = (content[0], content[1])
+            
+            transformed_corners = transformAndShow(database_file_name, H, padding=0, top_left=top_left)
+            transformed_corners_dict = [[corner[0] - top_left[0], corner[1] - top_left[1]] 
+                                    for corner in transformed_corners.T]
+            
+        else: 
+            test_file_name = 'soccer_data/train_val/' + test_file_name_idx + '.jpg'
+            test_homography_file = 'soccer_data/train_val/' + test_file_name_idx + '.homographyMatrix'
+            
+            # print(test_file_name, test_homography_file)
+            # exit()
+            
+            with open(test_homography_file) as f:
+                content = f.readlines()
+                
+            H = np.zeros((3, 3))
+            for i in range(len(content)):
+                H[i] = np.array([float(x) for x in content[i].strip().split()])
+            top_left = None
+            
+            transformed_corners = transformAndShow(test_file_name, H, padding=0, top_left=top_left)
+            transformed_corners_database = [[corner[0], corner[1]] 
+                                    for corner in transformed_corners.T]
+            
         # print("Trapezium corners from dictionary image-\n", transformed_corners_dict)
 
         # ---- IoU calculation ----

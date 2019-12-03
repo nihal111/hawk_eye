@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 #flip this if you want to visualize
 visualize = False
+only_score = True
 
 def get_bounds(transformed_corners, footballIm, padding):
     x_min = min(0, min(transformed_corners[0, :]))
@@ -80,6 +81,10 @@ def transformAndShow(file_name, H, padding, top_left):
     transformed_corners = np.divide(
         transformed_corners, transformed_corners[2, :])
     
+    if only_score:
+        return transformed_corners
+        print("shouldnt be here")
+    
     if top_left is None:
         x1, _, y1, _ = get_bounds(transformed_corners, footballIm, padding)
         top_left=(-x1, -y1)
@@ -118,6 +123,7 @@ if __name__ == '__main__':
 
     # Displaying an example of each:
     # Flip visualize to True near imports if you want to show the outputs
+    # make only_score to False if you want to use normally
 
     # ----- Image from dictionary -----
     
