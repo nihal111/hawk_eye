@@ -6,6 +6,7 @@ from perturb_functions.pan import pan
 from perturb_functions.zoom import zoom
 from perturb_functions.tilt import tilt
 from cameraToTop import transformAndShow
+import os.path
 
 def getMask(points, x_min, x_max, y_min, y_max):
     x_width = int(x_max - x_min + 1)
@@ -78,9 +79,11 @@ def apply_perturbation(corners, transformed_corners, canvasIm, inputIm,
     # plt.imshow(canvasIm)
     # plt.title("canvasIm")
     # plt.show()
-    f = open(str(idx) +".txt","w+")
-    f.write("%d"%(-x_min))
-    f.write("%d"%(-y_min))
+    path = "./soccer_data/top-left/"
+    completeName = os.path.join(path, str(idx)+".txt") 
+    f = open(completeName,"w+")
+    f.write("%.5f\n"%(-x_min))
+    f.write("%.5f"%(-y_min))
     f.close()
     return
 
@@ -306,7 +309,8 @@ def cv2warp(inputIm, H):
 if __name__ == '__main__':
     
     for k in range(2, 210):
-    
+        if k == 15:
+            continue
         file_name = 'soccer_data/train_val/' + str(k)
         football_field = 'football_field.jpg'
 
