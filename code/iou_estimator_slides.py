@@ -11,6 +11,9 @@ if __name__ == '__main__':
     
     with open('matches.json') as json_file:
         data = json.load(json_file)
+        
+    with open('IoU_results.json') as json_file:
+        iou_data = json.load(json_file)
     # print(data)
     
     IoU_scores = {}
@@ -20,6 +23,16 @@ if __name__ == '__main__':
     good_avg_IoU = 0.0
     
     queries = data.keys()
+    
+    sorted_iou = sorted(iou_data.items(), key=lambda x: x[1])
+    idx = [117, 78, 175, 150, 170]
+    # idx = [170]
+    # print(sorted_iou)
+    queries = [sorted_iou[i] for i in idx]
+    queries = [q[0] for q in queries]
+    # print(queries)
+    # exit()
+    
     for query in queries:
     
         test_file_name_idx = query.split('/')[-1].split('_')[0]
@@ -66,7 +79,7 @@ if __name__ == '__main__':
                 content = [float(line.strip()) for line in f.readlines()]
             top_left = (content[0], content[1])
             
-            transformed_corners = transformAndShow(database_file_name, H, padding=0, top_left=top_left)
+            transformed_corners = transformAndShow(test_file_name, H, padding=0, top_left=top_left)
             transformed_corners_dict = [[corner[0] - top_left[0], corner[1] - top_left[1]] 
                                     for corner in transformed_corners.T]
             
@@ -107,9 +120,6 @@ if __name__ == '__main__':
             good_ct += 1
             good_avg_IoU += IoU
         
-        if ct % 10 == 0:
-            with open('IoU_results.json', 'w') as fi:
-                json.dump(IoU_scores, fi)
              
         ct += 1
         avg_IoU += IoU  
