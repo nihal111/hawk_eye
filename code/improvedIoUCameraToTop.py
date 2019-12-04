@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 from matplotlib import path
 import matplotlib.pyplot as plt
+from shapely.geometry import Polygon, LineString
+from shapely.ops import split
 
 #flip this if you want to visualize
 visualize = False
@@ -81,9 +83,9 @@ def transformAndShow(file_name, H, padding, top_left):
     transformed_corners = np.divide(
         transformed_corners, transformed_corners[2, :])
     
-    if only_score:
-        return transformed_corners
-        print("shouldnt be here")
+    # if only_score:
+    #     return transformed_corners
+    #     print("shouldnt be here")
     
     if top_left is None:
         x1, _, y1, _ = get_bounds(transformed_corners, footballIm, padding)
@@ -105,10 +107,119 @@ def transformAndShow(file_name, H, padding, top_left):
         inputIm, new_footballIm, H, x_min, x_max, y_min, y_max, top_left)
 
     plt.imshow(canvasIm)
-    if visualize:
-        plt.show()
+    fig = plt.gcf()
+    ax = fig.gca()
 
-    return transformed_corners
+    points = [(corner[0] - x_min, corner[1] - y_min) for corner in transformed_corners.T]
+    print(points)
+    circle1 = plt.Circle(points[0], 4, color='r')
+    circle2 = plt.Circle(points[1], 4, color='g')
+    circle3 = plt.Circle(points[2], 4, color='b')
+    circle4 = plt.Circle(points[3], 4, color='pink')
+    ax.add_artist(circle1)
+    ax.add_artist(circle2)
+    ax.add_artist(circle3)
+    ax.add_artist(circle4)
+    trapezium = Polygon(points)
+    all_points = points
+    
+    points = [(0,0), (115, 0), (115, 75), (0, 75)]
+    points = [(corner[0] + top_left[0], corner[1] + top_left[1]) for corner in points]
+    points.append(points[0])
+    circle1 = plt.Circle(points[0], 4, color='cyan')
+    circle2 = plt.Circle(points[1], 4, color='cyan')
+    circle3 = plt.Circle(points[2], 4, color='cyan')
+    circle4 = plt.Circle(points[3], 4, color='cyan')
+    ax.add_artist(circle1)
+    ax.add_artist(circle2)
+    ax.add_artist(circle3)
+    ax.add_artist(circle4)
+    plt.show()
+    football_field = Polygon(points)
+    all_points += points
+
+    plt.plot(*football_field.exterior.xy)
+    plt.plot(*trapezium.exterior.xy)
+    plt.show()
+
+    lines = []
+    x_min1 = min([p[0] for p in all_points])
+    x_max1 = max([p[0] for p in all_points])
+    y_min1 = min([p[1] for p in all_points])
+    y_max1 = max([p[1] for p in all_points])
+    for i in range(0, 4):
+        p1, p2 = list(points[i]), list(points[i+1])
+        if p1[0] != p2[0]:
+            if p1[0] < p2[0]:
+                p1[0], p2[0] = x_min1, x_max1
+            else:
+                p1[0], p2[0] = x_max1, x_min1
+
+        if p1[1] != p2[1]:
+            if p1[1] < p2[1]:
+                p1[1], p2[1] = y_min1, y_max1
+            else:
+                p1[1], p2[1] = y_max1, y_min1
+        lines.append(LineString([tuple(p1), tuple(p2)]))
+
+    # Find the interior polygon
+    line = lines[0] # p0 --- p1
+    splitted = split(trapezium, line)
+    if len(splitted) == 2:
+        a, b = splitted
+        y_avg = sum(a.exterior.coords.xy[1]) / len(a.exterior.coords.xy[1])
+        # Choose polygon above line
+        trapezium = a if y_avg > points[1][1] else b
+    plt.plot(*football_field.exterior.xy)
+    plt.plot(*trapezium.exterior.xy)
+    x, y = line.xy
+    plt.plot(x, y, 'o', color='#999999', zorder=1)
+    plt.show()
+
+    line = lines[1] # p1 --- p2
+    splitted = split(trapezium, line)
+    if len(splitted) == 2:
+        a, b = splitted
+        x_avg = sum(a.exterior.coords.xy[0]) / len(a.exterior.coords.xy[0])
+        # Choose polygon left of line
+        trapezium = a if x_avg < points[2][0] else b
+    plt.plot(*football_field.exterior.xy)
+    plt.plot(*trapezium.exterior.xy)
+    x, y = line.xy
+    plt.plot(x, y, 'o', color='#999999', zorder=1)
+    plt.show()
+
+    line = lines[2] # p2 --- p3
+    splitted = split(trapezium, line)
+    if len(splitted) == 2:
+        a, b = splitted
+        y_avg = sum(a.exterior.coords.xy[1]) / len(a.exterior.coords.xy[1])
+        # Choose polygon below line
+        trapezium = a if y_avg < points[3][1] else b
+    plt.plot(*football_field.exterior.xy)
+    plt.plot(*trapezium.exterior.xy)
+    x, y = line.xy
+    plt.plot(x, y, 'o', color='#999999', zorder=1)
+    plt.show()
+
+    line = lines[3] # p3 --- p1
+    splitted = split(trapezium, line)
+    if len(splitted) == 2:
+        a, b = splitted
+        x_avg = sum(a.exterior.coords.xy[0]) / len(a.exterior.coords.xy[0])
+        # Choose polygon right of line
+        trapezium = a if x_avg > points[3][0] else b
+    plt.plot(*football_field.exterior.xy)
+    plt.plot(*trapezium.exterior.xy)
+    x, y = line.xy
+    plt.plot(x, y, 'o', color='#999999', zorder=1)
+    plt.show()
+
+    # print("Polygon formed")
+    # print(trapezium)
+    cut_polygon_corners = [[a + x_min, b + y_min] for a, b in zip(trapezium.exterior.coords.xy[0], trapezium.exterior.coords.xy[1])]
+    # print(cut_polygon_corners)
+    return cut_polygon_corners
 
 
 if __name__ == '__main__':
@@ -139,8 +250,11 @@ if __name__ == '__main__':
     
     transformed_corners = transformAndShow(file_name, H, padding=0, top_left=top_left)
     transformed_corners_dict = [[corner[0] - top_left[0], corner[1] - top_left[1]] 
-                            for corner in transformed_corners.T]
+                            for corner in transformed_corners]
     print("Trapezium corners from dictionary image-\n", transformed_corners_dict)
+
+    # Football field coordinates are- (0, 0), (115, 0), (115, 75), (0, 75)
+
 
     # ------ Image from Dataset ------
 
@@ -159,17 +273,18 @@ if __name__ == '__main__':
     
     transformed_corners = transformAndShow(file_name, H, padding=0, top_left=top_left)
     transformed_corners_database = [[corner[0], corner[1]] 
-                            for corner in transformed_corners.T]
+                            for corner in transformed_corners]
     
     print("\nTrapezium corners from dataset image-\n", transformed_corners_database)
     
     
-    from shapely.geometry import Polygon
+    
+    a = Polygon([(x[0], x[1]) for x in transformed_corners_dict])
+    b = Polygon([(x[0], x[1]) for x in transformed_corners_database])
+    plt.plot(*a.exterior.xy)
+    plt.plot(*b.exterior.xy)
+    plt.show()
 
-    a = Polygon([(transformed_corners_dict[0][0], transformed_corners_dict[0][1]), (transformed_corners_dict[1][0], transformed_corners_dict[1][1]), (transformed_corners_dict[2][0], transformed_corners_dict[2][1]), (transformed_corners_dict[2][0], transformed_corners_dict[2][1])])
-    
-    b = Polygon([(transformed_corners_database[0][0], transformed_corners_database[0][1]), (transformed_corners_database[1][0], transformed_corners_database[1][1]), (transformed_corners_database[2][0], transformed_corners_database[2][1]), (transformed_corners_database[2][0], transformed_corners_database[2][1])])
-    
     IoU = a.intersection(b).area / a.union(b).area
     
     print("IoU: ", IoU)
