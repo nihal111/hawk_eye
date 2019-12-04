@@ -13,7 +13,11 @@
 - Monica Gupta (903514001)
 
 #### Link to presentation:
- 
+ Slides: https://docs.google.com/presentation/d/1zinlch7VtyuMFU1dZtBBaVbu1QHmc5oL3z5CUm7ywN4/edit?usp=sharing
+
+ Video: https://youtu.be/Jqh7Ce2R1Kk
+
+
 
 #### Build Instructions:
 Install rubygems, jekyll and do `jekyll serve` in the root directory to launch the website locally.

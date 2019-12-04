@@ -7,7 +7,7 @@ from shapely.ops import split
 
 #flip this if you want to visualize
 visualize = False
-only_score = True
+only_score = False
 
 def get_bounds(transformed_corners, footballIm, padding):
     x_min = min(0, min(transformed_corners[0, :]))
@@ -106,7 +106,10 @@ def transformAndShow(file_name, H, padding, top_left):
     canvasIm=warpImageOntoCanvas(
         inputIm, new_footballIm, H, x_min, x_max, y_min, y_max, top_left)
 
+    plt.cla()
+    plt.clf()
     plt.imshow(canvasIm)
+    plt.show()
     fig = plt.gcf()
     ax = fig.gca()
 
@@ -134,13 +137,17 @@ def transformAndShow(file_name, H, padding, top_left):
     ax.add_artist(circle2)
     ax.add_artist(circle3)
     ax.add_artist(circle4)
-    plt.show()
+    
+    if visualize:
+        plt.show()
     football_field = Polygon(points)
     all_points += points
 
     plt.plot(*football_field.exterior.xy)
     plt.plot(*trapezium.exterior.xy)
-    plt.show()
+    
+    if visualize:
+        plt.show()
 
     lines = []
     x_min1 = min([p[0] for p in all_points])
@@ -174,7 +181,9 @@ def transformAndShow(file_name, H, padding, top_left):
     plt.plot(*trapezium.exterior.xy)
     x, y = line.xy
     plt.plot(x, y, 'o', color='#999999', zorder=1)
-    plt.show()
+    
+    if visualize:
+        plt.show()
 
     line = lines[1] # p1 --- p2
     splitted = split(trapezium, line)
@@ -187,7 +196,9 @@ def transformAndShow(file_name, H, padding, top_left):
     plt.plot(*trapezium.exterior.xy)
     x, y = line.xy
     plt.plot(x, y, 'o', color='#999999', zorder=1)
-    plt.show()
+    
+    if visualize:
+        plt.show()
 
     line = lines[2] # p2 --- p3
     splitted = split(trapezium, line)
@@ -200,7 +211,9 @@ def transformAndShow(file_name, H, padding, top_left):
     plt.plot(*trapezium.exterior.xy)
     x, y = line.xy
     plt.plot(x, y, 'o', color='#999999', zorder=1)
-    plt.show()
+    
+    if visualize:
+        plt.show()
 
     line = lines[3] # p3 --- p1
     splitted = split(trapezium, line)
@@ -213,7 +226,9 @@ def transformAndShow(file_name, H, padding, top_left):
     plt.plot(*trapezium.exterior.xy)
     x, y = line.xy
     plt.plot(x, y, 'o', color='#999999', zorder=1)
-    plt.show()
+    
+    if visualize:
+        plt.show()
 
     # print("Polygon formed")
     # print(trapezium)
@@ -283,7 +298,9 @@ if __name__ == '__main__':
     b = Polygon([(x[0], x[1]) for x in transformed_corners_database])
     plt.plot(*a.exterior.xy)
     plt.plot(*b.exterior.xy)
-    plt.show()
+    
+    if visualize:
+        plt.show()
 
     IoU = a.intersection(b).area / a.union(b).area
     
