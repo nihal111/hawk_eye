@@ -85,8 +85,8 @@ def frame_detect(image):
                     # pass
 
 
-    # plt.imshow(image)
-    # plt.show()
+    plt.imshow(image)
+    plt.show()
 
 
 
@@ -94,9 +94,9 @@ if __name__ == '__main__':
     
     from sklearn.cluster import KMeans 
     
-    for k in range(10, 11):
+    for k in range(11, 12):
     
-        file_name = '/home/rohit/Documents/soccer_data/raw/train_val/' + str(k)
+        file_name = 'soccer_data/train_val/' + str(k)
 
         bgr = cv2.imread('{}.jpg'.format(file_name)).astype(np.uint8)
         inputIm = bgr[..., ::-1]

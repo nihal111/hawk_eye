@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 player_temps = []
 
+
 def frame_detect(image):
     # vidcap = cv2.VideoCapture('cutvideo.mp4')
     # success,image = vidcap.read()
@@ -50,15 +51,22 @@ def frame_detect(image):
     im2,contours,hierarchy = cv2.findContours(res_gray,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
     prev = 0
+    x_all = []
+    y_all = []
+    h_all = []
+    w_all = []
     font = cv2.FONT_HERSHEY_SIMPLEX
-    # print(len(contours))
     for c in contours:
         x,y,h,w = cv2.boundingRect(c)
+
         #Detect players
         if(w>=h):
             if(w>12 and h>= 12):
                 # print(x,y,w,h)
-
+                x_all.append(x)
+                y_all.append(y)
+                w_all.append(w)
+                h_all.append(h)
                 idx = idx+1
                 player_img = image[y:y+h,x:x+w]
                 player_hsv = cv2.cvtColor(player_img,cv2.COLOR_BGR2HSV)
@@ -79,16 +87,16 @@ def frame_detect(image):
                 # if(nzCount >= 20):
                 #     #Mark blue jersy players as 
                 # print(image.shape)
-                cv2.putText(image, 'Player', (x-2, y-2), font, 0.8, (255,0,0), 2, cv2.LINE_AA)
+                # cv2.putText(image, 'Player', (x-2, y-2), font, 0.8, (255,0,0), 2, cv2.LINE_AA)
                 # cv2.rectangle(image,(x,y),(x+h,y+w),(255,0,0),thickness = -1)
                 
                 # print(x, h, y, w)
                 if h > 0 and w > 0:
                     player_crop = image[y:y+h, x:x+w]
                     player_crop = cv2.resize(player_crop, (30, 30))
-                    plt.imshow(player_crop)
-                    plt.show()
-                    # print(player_crop.shape)
+                #     plt.imshow(player_crop)
+                #     plt.show()
+                #     # print(player_crop.shape)
                     player_crop = player_crop.reshape(-1)
                     player_temps.append(player_crop)
                     # print(player_crop.shape)
@@ -102,25 +110,38 @@ def frame_detect(image):
                 #     cv2.rectangle(image,(x,y),(x+w,y+h),(0,0,255),3)
                 # else:
                     # pass
-        if((h>=1 and w>=1) and (h<=30 and w<=30)):
-            player_img = image[y:y+h,x:x+w]
+        # if((h>=1 and w>=1) and (h<=30 and w<=30)):
+        #     player_img = image[y:y+h,x:x+w]
         
-            player_hsv = cv2.cvtColor(player_img,cv2.COLOR_BGR2HSV)
-            #white ball  detection
-            mask1 = cv2.inRange(player_hsv, lower_white, upper_white)
-            res1 = cv2.bitwise_and(player_img, player_img, mask=mask1)
-            res1 = cv2.cvtColor(res1,cv2.COLOR_HSV2BGR)
-            res1 = cv2.cvtColor(res1,cv2.COLOR_BGR2GRAY)
-            nzCount = cv2.countNonZero(res1)
+        #     player_hsv = cv2.cvtColor(player_img,cv2.COLOR_BGR2HSV)
+        #     #white ball  detection
+        #     mask1 = cv2.inRange(player_hsv, lower_white, upper_white)
+        #     res1 = cv2.bitwise_and(player_img, player_img, mask=mask1)
+        #     res1 = cv2.cvtColor(res1,cv2.COLOR_HSV2BGR)
+        #     res1 = cv2.cvtColor(res1,cv2.COLOR_BGR2GRAY)
+        #     nzCount = cv2.countNonZero(res1)
 
 
-            if(nzCount >= 3):
-                # detect football
-                cv2.putText(image, 'football', (x-2, y-2), font, 0.8, (0,255,0), 2, cv2.LINE_AA)
-                cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),3)
+        #     if(nzCount >= 3):
+        #         # detect football
+        #         cv2.putText(image, 'football', (x-2, y-2), font, 0.8, (0,255,0), 2, cv2.LINE_AA)
+        #         cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),3)
+    player_temps_arr = np.array(player_temps)
+    from sklearn.cluster import KMeans
+    kmeans = KMeans(n_clusters=2, random_state=0).fit(player_temps)
 
+    labels = kmeans.labels_
+    x_all = np.array(x_all)
+    y_all = np.array(y_all)
+    w_all = np.array(w_all)
+    h_all = np.array(h_all)
+    for i in labels:
+        if(i==0):
+            cv2.rectangle(image,(x_all[i],y_all[i]),(x_all[i]+h_all[i],y_all[i]+w_all[i]),(255,0,0),thickness = -1)
+        elif(i==1):
+            cv2.rectangle(image,(x_all[i],y_all[i]),(x_all[i]+h_all[i],y_all[i]+w_all[i]),(0,255,0),thickness = -1)
     plt.imshow(image)
-    # plt.show()
+    plt.show()
     #         if(nzCount >= 3):
     #             # detect football
     #             cv2.putText(frame, 'football', (x-2, y-2), font, 0.8, (0,255,0), 2, cv2.LINE_AA)
@@ -141,7 +162,7 @@ if __name__ == '__main__':
     
     for k in range(5, 6):
     
-        file_name = '/home/rohit/Documents/soccer_data/raw/train_val/' + str(k)
+        file_name = 'soccer_data/train_val/' + str(k)
         football_field = 'football_field.jpg'
 
         # with open('{}.homographyMatrix'.format(file_name)) as f:
@@ -153,16 +174,6 @@ if __name__ == '__main__':
         inputIm = bgr[..., ::-1]
 
         frame_detect(inputIm)
-        
-        
-        player_temps_arr = np.array(player_temps)
-        
-        from sklearn.cluster import KMeans
-        print(player_temps_arr.shape)
-        kmeans = KMeans(n_clusters=2, random_state=0).fit(player_temps)
-        
-        labels = kmeans.labels_
-        print(labels)
 
            
         
