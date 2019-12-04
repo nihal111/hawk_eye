@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 from matplotlib import path
 import matplotlib.pyplot as plt
-from cameraToTop import transformAndShow
+from improvedIoUCameraToTop import transformAndShow
 from shapely.geometry import Polygon
 import json
 import os.path as op
@@ -11,10 +11,9 @@ if __name__ == '__main__':
     
     with open('matches.json') as json_file:
         data = json.load(json_file)
-        
+    # print(data)
     with open('IoU_results.json') as json_file:
         iou_data = json.load(json_file)
-    # print(data)
     
     IoU_scores = {}
     ct = 0
@@ -24,14 +23,14 @@ if __name__ == '__main__':
     
     queries = data.keys()
     
+    print(len(iou_data.keys()))
+    
     sorted_iou = sorted(iou_data.items(), key=lambda x: x[1])
-    idx = [117, 78, 175, 150, 170]
+    idx = [94, 95, 142, 155, 165]
     # idx = [170]
     # print(sorted_iou)
     queries = [sorted_iou[i] for i in idx]
     queries = [q[0] for q in queries]
-    # print(queries)
-    # exit()
     
     for query in queries:
     
@@ -53,9 +52,15 @@ if __name__ == '__main__':
             H[i] = np.array([float(x) for x in content[i].strip().split()])
         top_left = None
         
-        transformed_corners = transformAndShow(test_file_name, H, padding=0, top_left=top_left)
+        try:
+            transformed_corners = transformAndShow(test_file_name, H, padding=0, top_left=top_left)
+        except:
+            ct += 1
+            avg_IoU += 0.0
+            continue
+            
         transformed_corners_database = [[corner[0], corner[1]] 
-                                for corner in transformed_corners.T]
+                                for corner in transformed_corners]
         
         # print("\nTrapezium corners from dataset image-\n", transformed_corners_database)
         
@@ -79,9 +84,14 @@ if __name__ == '__main__':
                 content = [float(line.strip()) for line in f.readlines()]
             top_left = (content[0], content[1])
             
-            transformed_corners = transformAndShow(test_file_name, H, padding=0, top_left=top_left)
-            transformed_corners_dict = [[corner[0] - top_left[0], corner[1] - top_left[1]] 
-                                    for corner in transformed_corners.T]
+            try:
+                transformed_corners = transformAndShow(test_file_name, H, padding=0, top_left=top_left)
+            except:
+                ct += 1
+                avg_IoU += 0.0
+                continue
+                
+            transformed_corners_dict = [[corner[0] - top_left[0], corner[1] - top_left[1]] for corner in transformed_corners]
             
         else: 
             test_file_name = 'soccer_data/train_val/' + test_file_name_idx + '.jpg'
@@ -98,19 +108,26 @@ if __name__ == '__main__':
                 H[i] = np.array([float(x) for x in content[i].strip().split()])
             top_left = None
             
-            transformed_corners = transformAndShow(test_file_name, H, padding=0, top_left=top_left)
-            transformed_corners_database = [[corner[0], corner[1]] 
-                                    for corner in transformed_corners.T]
+            try:
+                transformed_corners = transformAndShow(test_file_name, H, padding=0, top_left=top_left)
+            except:
+                ct += 1
+                avg_IoU += 0.0
+                continue
+                
+            transformed_corners_dict = [[corner[0], corner[1]] for corner in transformed_corners]
             
         # print("Trapezium corners from dictionary image-\n", transformed_corners_dict)
 
         # ---- IoU calculation ----
-
-        a = Polygon([(transformed_corners_dict[0][0], transformed_corners_dict[0][1]), (transformed_corners_dict[1][0], transformed_corners_dict[1][1]), (transformed_corners_dict[2][0], transformed_corners_dict[2][1]), (transformed_corners_dict[2][0], transformed_corners_dict[2][1])])
         
-        b = Polygon([(transformed_corners_database[0][0], transformed_corners_database[0][1]), (transformed_corners_database[1][0], transformed_corners_database[1][1]), (transformed_corners_database[2][0], transformed_corners_database[2][1]), (transformed_corners_database[2][0], transformed_corners_database[2][1])])
-        
-        IoU = a.intersection(b).area / a.union(b).area
+        try:
+            a = Polygon([(x[0], x[1]) for x in transformed_corners_dict])
+            b = Polygon([(x[0], x[1]) for x in transformed_corners_database])
+            IoU = a.intersection(b).area / a.union(b).area
+        except:
+            print('bad IoU')
+            IoU = 0.0
         
         IoU_scores[query] = IoU
         
@@ -120,7 +137,7 @@ if __name__ == '__main__':
             good_ct += 1
             good_avg_IoU += IoU
         
-             
+
         ct += 1
         avg_IoU += IoU  
         
