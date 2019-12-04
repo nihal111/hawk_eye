@@ -12,5 +12,8 @@
 - Sahith Dambekodi (903542538)
 - Monica Gupta (903514001)
 
+#### Link to presentation:
+ 
+
 #### Build Instructions:
 Install rubygems, jekyll and do `jekyll serve` in the root directory to launch the website locally.
