@@ -34,19 +34,19 @@ We apply this method to all 210 frames in the training dataset and the generated
 </p>
 
 ### 2. Augmented the Dictionary:
-The current dictionary of 210 frames will be insufficient for querying during test time. So we augment the database by virtually changing the camera position of the training images and then generating the edge map and corresponding homography matrix that is obtained. We perturb the camera position through three methods, namely panning, tilting and zooming. We obtain the 4 correspondences of the quadrilateral($q_0, q_1, q_2, q_3$) in the camera view and the top view and then transform these coordinates using the equations associated with each type of perturbation. The transformation is done first in the top view. The values used for each perturbation were selected after analyzing which gave the best results.
+The current dictionary of 210 frames will be insufficient for querying during test time. So we augment the database by virtually changing the camera position of the training images and then generating the edge map and corresponding homography matrix that is obtained. We perturb the camera position through three methods, namely panning, tilting and zooming. We obtain the 4 correspondences of the quadrilateral($$q_0, q_1, q_2, q_3$$) in the camera view and the top view and then transform these coordinates using the equations associated with each type of perturbation. The transformation is done first in the top view. The values used for each perturbation were selected after analyzing which gave the best results.
 
 <p align="center">
 	<img src="{{site.baseurl}}/public/pan_tilt_zoom.png" />
 	Generating augmented data by adding basic perturbations.
 </p>
 
-**Pan**: We simulate pan by rotating the quadrilateral $(q_0q_1q_2q_3)$ around the point of convergence of lines $(q_0q_3)$ and $(q_1q_2)$ to obtain the modified quadrilateral. Values used for pan were [-0.1, 0.1, 0.15, -0.15, -0.18, 0.18].
+**Pan**: We simulate pan by rotating the quadrilateral $$(q_0q_1q_2q_3)$$ around the point of convergence of lines $$(q_0q_3)$$ and $$(q_1q_2)$$ to obtain the modified quadrilateral. Values used for pan were [-0.1, 0.1, 0.15, -0.15, -0.18, 0.18].
 
 
-**Tilt**: We simulate zoom by applying a scaling matrix to the homogenous coordinates of $q_0, q_1, q_2 and q_3$. Values used for tilting were [-0.05, 0.05, 0.02, -0.02, -0.035, 0.035].
+**Tilt**: We simulate zoom by applying a scaling matrix to the homogenous coordinates of $$q_0, q_1, q_2 and q_3$$. Values used for tilting were [-0.05, 0.05, 0.02, -0.02, -0.035, 0.035].
 
-**Zoom**: We simulate tilt by moving the points $q_0, q_1, q_2, q_3$ up/down by a constant distance along their respective lines $(q_0q_3)$ and $(q_1q_2)$. Values used for zooming were  [0.95, 1.1, 1.2, 1.15, 0.9, 0.85].
+**Zoom**: We simulate tilt by moving the points $$q_0, q_1, q_2, q_3$$ up/down by a constant distance along their respective lines $$(q_0q_3)$$ and $$(q_1q_2)$$. Values used for zooming were  [0.95, 1.1, 1.2, 1.15, 0.9, 0.85].
 
 We apply the perturbations to each of the images with 6 different values for each perturbation. This results in 18 output edge maps for each input frame in the training datasets. We create new homographies for the perturbed trapeziums in the top view to rectangular images of the original camera view. We then store the edge maps obtained by transforming into the camera view and the associated inverse of the homography matrix that was generated earlier into the dictionary. This increases the dictionary size from 210 to 3980. This dictionary now gives a larger chance to find matching images which are identical or nearly identical to the query input.
 
@@ -64,7 +64,7 @@ During test time, we convert the camera view frame input, into its equivalent ed
 	Samples of augmented images generated using pan, tilt and zoom transformations.
 </p>
 
-Pix2pix is a conditional generative adversarial network which translates an input image $x$ from Domain 1 into its corresponding image in Domain 2.
+Pix2pix is a conditional generative adversarial network which translates an input image $$x$$ from Domain 1 into its corresponding image in Domain 2.
 Domain 1 will be the camera views from the training dataset. We generate the edge map for these images by using the inverse homography by using the inverse of the associated homography matrix with top view edge map as the source image. The generated edge maps form Domain 2 for the training process.
 We then trained pix2pix to learn a mapping from Domain 1 to Domain 2. During testing, we convert the input image from camera view to an edge map using the trained pix2pix model. 
 
